@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+   
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/peer.js"></script>
+	<script type="text/javascript" src="js/aurora.js"></script>
+	<script type="text/javascript" src="js/mp3.js"></script>
+
+	<script>
+	window.player		= "";
+	var context = new AudioContext();
+
+	console.log('from iframe');
+	function playSong(){
+	var tmp = new Uint8Array( window.parent.fullFileBuffer.byteLength );
+	tmp.set( new Uint8Array( window.parent.fullFileBuffer), 0 );
+	
+			alert('bufferlength = '+tmp.buffer.byteLength );
+			/*
+			if(player != ""){
+				player.stop();
+			}
+			player = AV.Player.fromBuffer(tmp.buffer);
+			player.preload();
+
+			player.on('ready', function () {
+			  console.log('ready');
+
+			  // Aurora doesn't create the audio context until you start playing it.
+			  player.play();
+			  player.pause();
+
+			  // Wire the WebAudio source and destination together.
+			  var remoteDestination = player.device.device.context.createMediaStreamDestination();
+			  player.device.device.node.connect(remoteDestination);
+			  var call = window.parent.peer.call(window.parent.partnerid,remoteDestination.stream);
+			 player.play();
+			 });
+	*/		  
+	
+			context.decodeAudioData(tmp.buffer, function(buffer) {
+			var mediaBuffer = buffer;
+			var mediaSource = context.createBufferSource();
+			mediaSource.buffer = mediaBuffer;
+			var gainNode = context.createGain();
+			//Play locally
+			//gainNode.connect(context.destination);
+			//mediaSource.connect(gainNode);
+			// setup remote stream
+			remoteDestination = context.createMediaStreamDestination();
+			mediaSource.connect(remoteDestination);
+			//  var call = window.parent.peer.call(window.parent.partnerid,remoteDestination.stream);
+			var audio_player = document.getElementById('audio_player');//document.getElementById('audioIframe').contentWindow.document.getElementById('audio_player');
+            audio_player.src = tmp.buffer;//URL.createObjectURL(remoteDestination.stream);
+            audio_player.play();
+			
+			mediaSource.start(0);
+			
+		});
+
+	
+}
+	</script>
+
+  </head>
+
+  <body>
+   	<audio style = "width : 70% ; display : none;" controls id="audio_player"/>
+  </body>
+</html>

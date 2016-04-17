@@ -117,19 +117,22 @@
 
 
 
-     peer.on('call', function(call) {
-         $ionicLoading.hide();
-         call.answer();
-         call.on('stream', function(stream) {
-
-
-             var audio_player = document.getElementById('audioIframe').contentWindow.document.getElementById('audio_player');
-             audio_player.src = URL.createObjectURL(stream);
+		//var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+		peer.on('call', function(call) {
+		 console.log('call received');
+		  navigator.webkitGetUserMedia({video: false, audio: true}, function(stream) {
+			call.answer(stream); // Answer the call with an A/V stream.
+			console.log('call answered');
+			call.on('stream', function(remoteStream) {
+			  console.log('call connected');
+			  var audio_player = document.getElementById('audio_player');
+             audio_player.src = URL.createObjectURL(remoteStream);
              audio_player.play();
-         });
-
-         $scope.$digest();
-     });
+			});
+		  }, function(err) {
+			console.log('Failed to get receiver local stream' ,err);
+		  });
+		});
 
      peer.on('connection', function(conn) {
          peerConnection = conn;

@@ -165,7 +165,24 @@ angular.module('starter.controllers', [])
         startBuffering();
 
     }
-	
+	    $scope.makeCall = function() {
+		
+		//var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+		//alert(navigator.userAgent);
+		navigator.webkitGetUserMedia({video: false, audio: true}, function(stream) {
+			  var call = peer.call(partnerid, stream);
+			  console.log('call initiated');
+			  call.on('stream', function(remoteStream) {
+				// Show stream in some video/canvas element.
+				console.log('call connected');
+							  var audio_player = document.getElementById('audio_player');
+             audio_player.src = URL.createObjectURL(remoteStream);
+             audio_player.play();
+			  });
+			}, function(err) {
+			  console.log('Failed to get caller local stream' ,err);
+			});
+		}
     $scope.loadSongs = function() {
         $timeout(function() {
             //	alert($scope.showHideYou);

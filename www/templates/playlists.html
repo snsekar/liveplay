@@ -22,6 +22,12 @@
 		 <ion-tab title="{{you}} ({{youCount}})">	
 			<ion-view>
 			<ion-content overflow-scroll="true">
+							<div>
+					<input type="file" id="selectedFile" style="display: none;" accept="audio/*" onchange="handleFileSelect(this)"/>
+					<input type="button" value="Choose song" onclick="document.getElementById('selectedFile').click();" style="height: 50px;width:80%;max-width: 250px;"/>
+					<br/><br/>
+					<audio controls id="audio_player" style="width:80%;max-width: 250px;"/>
+				</div>	
 			 <ion-list>
 				<ion-item class="item item-icon-left" href="#" ng-click = "songSelected(song);" ng-repeat = "song in songs">		   
 			   <i class="icon ion-music-note"></i>
@@ -31,12 +37,7 @@
 			   <ion-item></ion-item>
 				<ion-item></ion-item>
 			   </ion-list>         
-				<div>
-					<input type="file" id="selectedFile" style="display: none;" accept="audio/*" onchange="handleFileSelect(this)"/>
-					<input type="button" value="Choose song" onclick="document.getElementById('selectedFile').click();" style="height: 50px;width:80%;max-width: 250px;"/>
-					<br/><br/>
-					<audio controls id="audio_player" style="width:80%;max-width: 250px;"/>
-				</div>	
+
 			 </ion-content>
 			</ion-view>
 		 </ion-tab>

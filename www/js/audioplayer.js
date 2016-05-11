@@ -42,7 +42,7 @@ var playStopped = function() {
 	//console.log('play stopped');
 }
 var playSong = function() {
-	if(isApp){
+	/*if(isApp){
 		if (audio_player == 0 && !isStartPlay) {
 			//console.log('now = '+(context.currentTime * 1000 * 1000)/1000);
 
@@ -96,29 +96,43 @@ var playSong = function() {
 			
 
 		}
-	}else{ 
+	//}else{ */
 		
 		if (audio_player == 0 && !isStartPlay) {
-		
+		console.log(myid+' : startplaying');
 			audio_player = document.getElementById('audio_player');
 			var dataView = new Uint8Array(bufferBlob);
 			var dataBlob = new Blob([dataView]);
-			var url = window.URL.createObjectURL(dataBlob);
-			
-			audio_player.src = url;
-			audio_player.onended = playSuccess;
-			audio_player.onerror = playError;
-			if (previousChunkDuration > 0 && previousChunkDuration < 1000) {
-				return;
-			}
+			var bloburl = window.URL.createObjectURL(dataBlob);
+			console.log(myid+' : bloburl = '+ bloburl);
 
-			previousChunkDuration = context.currentTime * 1000;
-			console.log(myid+' : elapsedTime = ' + elapsedTime);
-			audio_player.play();
-			audio_player.currentTime = (elapsedTime/1000);
+			 var xhr = new XMLHttpRequest();
+			  xhr.open('GET', 'http://upload.wikimedia.org/wikipedia/commons/a/aa/White_noise.ogg', true);
+			  xhr.responseType = 'blob';
+
+			  xhr.onreadystatechange = function() {
+				if (xhr.readyState === 4 && xhr.status == 200) {
+					var url = window.URL.createObjectURL( xhr.response )
+					console.log(myid+' : audiourl = '+ url);
+					audio_player.src = url;
+					audio_player.onended = playSuccess;
+					audio_player.onerror = playError;
+					if (previousChunkDuration > 0 && previousChunkDuration < 1000) {
+						return;
+					}
+
+					previousChunkDuration = context.currentTime * 1000;
+					console.log(myid+' : elapsedTime = ' + elapsedTime);
+					audio_player.play();
+					audio_player.currentTime = (elapsedTime/1000);
+				  }
+				};
+				xhr.send();
+			
+
 			
 		}
-	}
+	//}
 	
 	$ionicLoading.hide();
 

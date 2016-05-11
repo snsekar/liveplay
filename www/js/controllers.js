@@ -93,9 +93,10 @@ angular.module('starter.controllers', [])
 		function onMError(){
 			//alert('Music control error');
 		}
+		/*
 		MusicControls.create({
 			track       : song.name,        // optional, default : ''
-			artist      : 'Muse',                       // optional, default : ''
+			artist      : '',                       // optional, default : ''
 			cover       : 'resources/android/icon/drawable-ldpi-icon.jpg',      // optional, default : nothing
 			// cover can be a local path (use fullpath 'file:///storage/emulated/...', or only 'my_image.jpg' if my_image.jpg is in the www folder of your app)
 			//           or a remote url ('http://...', 'https://...', 'ftp://...')
@@ -109,7 +110,7 @@ angular.module('starter.controllers', [])
 
 			// Android only, optional
 			// text displayed in the status bar when the notification (and the ticker) are updated
-			ticker    : 'Now playing "Time is Running Out"'
+			ticker    : song.name
 		}, onMSuccess, onMError);
 		
 		function events(action) {
@@ -153,6 +154,7 @@ angular.module('starter.controllers', [])
 
 		MusicControls.updateIsPlaying(true); // toggle the play/pause notification button
 		//music control end
+		*/
         $ionicLoading.show({
             template: 'Loading...' + song.name
         });

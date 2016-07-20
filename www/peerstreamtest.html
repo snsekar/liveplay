@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>PeerStream Demo</title>
+    <script type="text/javascript" src="peer.js"></script>
+    <script type="text/javascript" src="peerstream.js"></script>
+    <script>
+    var peerstream;
+    peerstream.onConnectedHandler
+    function connect() {
+      var selfId = document.getElementById("selfId");
+      peerstream = new PeerStream(selfId);
+    }
+    function connectPeer() {
+      var peerId = document.getElementById("peerId");
+      peerstream.connectToPeer(peerId);
+    }
+
+    peerstream
+    </script>
+  </head>
+  <body>
+    <h2>PeerStream Demo !!! </h2>
+    selfId:<input type = "text" id="selfId"/><button onclick="connect()">Connect me</button>
+    peerId:<input type = "text" id="peerId"/><button onclick="connectPeer()">Connect with peer</button>
+  </body>
+</html>

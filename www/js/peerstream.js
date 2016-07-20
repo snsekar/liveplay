@@ -2,18 +2,32 @@ var PeerStream = function (selfId) {
   this.selfId = selfId;
   this.peerId;
   this.peerConnection;
+
   this.onConnectedHandler;
   this.onPeerConnectedHandler;
+  this.onChatHandler;
+
   this.peer = new Peer(selfId, {
       key: 'iulf39j4p5w2ke29'
   });
   this.peer.on('open', function() {
+
+    this.peer.on('connection', function(connection) {
+      this.peerConnection = connection;
+      this.peerConnection.on('data', function(data) {
+        if(data.type == 'chat'){
+          this.onChatHandler.call(data.payload);
+        }
+      });
+      this.onPeerConnectedHandler.call();
+    });
+
+
+
     this.onConnectedHandler.call();
+
   });
-  this.peer.on('connection', function(connection) {
-    this.peerConnection = connection
-    this.onPeerConnectedHandler.call();
-  });
+
 };
 
 PeerStream.prototype.onConnected = function(eventHandler) {
@@ -67,7 +81,16 @@ PeerStream.prototype.stopCall = function() {
 };
 
 PeerStream.prototype.chat = function(message) {
+  var data = {
+    //id : 'some unique id for this message',
+    type : 'chat',
+    payload : message
+  };
+  this.peerConnection.send(data);
+};
 
+PeerStream.prototype.onChat = function(eventHandler) {
+  this.onChatHandler = eventHandler;
 };
 
 PeerStream.prototype.signal = function(message) {

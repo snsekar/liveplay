@@ -1,5 +1,6 @@
-var PeerStream = function (selfId) {
-  this.selfId = selfId;
+var _peer;
+var PeerStream = function () {
+  this.selfId;
   this.peerId;
   this.peerConnection;
 
@@ -7,38 +8,44 @@ var PeerStream = function (selfId) {
   this.onPeerConnectedHandler;
   this.onChatHandler;
 
-  this.peer = new Peer(selfId, {
-      key: 'iulf39j4p5w2ke29'
-  });
-  this.peer.on('open', function() {
 
-    this.peer.on('connection', function(connection) {
-      this.peerConnection = connection;
-      this.peerConnection.on('data', function(data) {
-        if(data.type == 'chat'){
-          this.onChatHandler.call(data.payload);
-        }
-      });
-      this.onPeerConnectedHandler.call();
-    });
-
-
-
-    this.onConnectedHandler.call();
-
-  });
+  // this.peer.on('connection', function(connection) {
+  //   this.peerConnection = connection;
+  //   this.peerConnection.on('data', function(data) {
+  //     if(data.type == 'chat'){
+  //       this.onChatHandler.call(data.payload);
+  //     }
+  //   });
+  //   this.onPeerConnectedHandler.call();
+  // });
 
 };
-
+PeerStream.prototype.connect = function(selfId) {
+  this.selfId = selfId;
+  _peer = new Peer(selfId, {
+      key: 'iulf39j4p5w2ke29'
+  });
+  _peer.on('open', function(id) {
+    console.log('self connected id = '+id);
+    this.onConnectedHandler.call();
+  });
+};
 PeerStream.prototype.onConnected = function(eventHandler) {
   this.onConnectedHandler = eventHandler;
 };
 
 PeerStream.prototype.connectToPeer = function(peerId) {
   this.peerId = peerId;
-  this.peerConnection = this.peer.connect(peerId, {
+  this.peerConnection = _peer.connect(peerId, {
       label: "file",
       reliable: true
+  });
+  this.peerConnection.on('open', function() {
+  // Receive messages
+    this.peerConnection.on('data', function(data) {
+      console.log('Received', data);
+        this.onOnChatHandler.call();
+    });
   });
   this.onPeerConnectedHandler.call();
 };

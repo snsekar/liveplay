@@ -2,26 +2,43 @@
 <html>
   <head>
     <title>PeerStream Demo</title>
-    <script type="text/javascript" src="peer.js"></script>
-    <script type="text/javascript" src="peerstream.js"></script>
+    <script type="text/javascript" src="js/peer.js"></script>
+    <script type="text/javascript" src="js/peerstream.js"></script>
     <script>
-    var peerstream;
-    peerstream.onConnectedHandler
-    function connect() {
-      var selfId = document.getElementById("selfId");
-      peerstream = new PeerStream(selfId);
-    }
-    function connectPeer() {
-      var peerId = document.getElementById("peerId");
-      peerstream.connectToPeer(peerId);
-    }
+      var peerstream = new PeerStream();
+        peerstream.onConnected(function(){
+          console.log('connected');
+        });
+        peerstream.onPeerConnected(function(){
+         console.log('peer connected');
+        });
+        peerstream.onChat(function(chatMessage){
+         console.log('chat : '+chatMessage);
+        });
+      function connect() {
+        var selfId = document.getElementById("selfId").value;
 
-    peerstream
+          peerstream.connect(selfId);
+      }
+      function connectPeer() {
+        var peerId = document.getElementById("peerId").value;
+
+        peerstream.connectToPeer(peerId);
+
+      }
+      function sendMessage() {
+        var msg = document.getElementById("message").value;
+        peerstream.chat(msg);
+      }
+
     </script>
   </head>
   <body>
     <h2>PeerStream Demo !!! </h2>
     selfId:<input type = "text" id="selfId"/><button onclick="connect()">Connect me</button>
     peerId:<input type = "text" id="peerId"/><button onclick="connectPeer()">Connect with peer</button>
+    <br>
+    Message:<input type = "text" id="message"/><button onclick="sendMessage()">Send message</button>
+
   </body>
 </html>

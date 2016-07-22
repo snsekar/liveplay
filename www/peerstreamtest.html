@@ -5,40 +5,46 @@
     <script type="text/javascript" src="js/peer.js"></script>
     <script type="text/javascript" src="js/peerstream.js"></script>
     <script>
-      var peerstream = new PeerStream();
-        peerstream.onConnected(function(){
-          console.log('connected');
-        });
-        peerstream.onPeerConnected(function(){
-         console.log('peer connected');
-        });
-        peerstream.onChat(function(chatMessage){
-         console.log('chat : '+chatMessage);
-        });
+
       function connect() {
         var selfId = document.getElementById("selfId").value;
-
-          peerstream.connect(selfId);
-      }
-      function connectPeer() {
         var peerId = document.getElementById("peerId").value;
-
-        peerstream.connectToPeer(peerId);
-
+        PeerStream.connect(selfId, peerId);
       }
+
       function sendMessage() {
         var msg = document.getElementById("message").value;
-        peerstream.chat(msg);
+        PeerStream.chat(msg);
       }
 
+      PeerStream.onConnected(function(){
+        console.log('connected');
+      });
+      PeerStream.onDisconnected(function(){
+        console.log('dis-connected');
+      });
+      PeerStream.onPeerConnected(function(){
+       console.log('peer connected');
+      });
+      PeerStream.onPeerDisconnected(function(){
+       console.log('peer dis-connected');
+      });
+      PeerStream.onChat(function(chatMessage){
+       console.log('chat : '+chatMessage);
+      });
+      PeerStream.onError(function(err){
+       console.log('error :' + JSON.stringify(err));
+      });
     </script>
   </head>
   <body>
     <h2>PeerStream Demo !!! </h2>
-    selfId:<input type = "text" id="selfId"/><button onclick="connect()">Connect me</button>
-    peerId:<input type = "text" id="peerId"/><button onclick="connectPeer()">Connect with peer</button>
+    selfId:<input type = "text" id="selfId"/>
+    <br>
+    peerId:<input type = "text" id="peerId"/>
+    <br>
+    <button onclick="connect()">Connect me</button>
     <br>
     Message:<input type = "text" id="message"/><button onclick="sendMessage()">Send message</button>
-
   </body>
 </html>

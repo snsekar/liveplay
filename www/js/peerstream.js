@@ -1,109 +1,138 @@
-var _peer;
-var PeerStream = function () {
-  this.selfId;
-  this.peerId;
-  this.peerConnection;
+var PeerStream = {};
+PeerStream.selfId = "";
+PeerStream.peerId = "";
+PeerStream.peer = "";
+PeerStream.peerConnection = "";
 
-  this.onConnectedHandler;
-  this.onPeerConnectedHandler;
-  this.onChatHandler;
+PeerStream.onConnectedHandler = "";
+PeerStream.onDisconnectedHandler = "";
+PeerStream.onPeerConnectedHandler = "";
+PeerStream.onPeerDisconnectedHandler = "";
+PeerStream.onChatHandler = "";
+PeerStream.onErrorHandler = "";
 
+PeerStream.initPeerConnection = function () {
+  PeerStream.peerConnection.on('open', function() {
+    PeerStream.onPeerConnectedHandler.call();
+  });
+  PeerStream.peerConnection.on('data', function(data) {
+    if(data.type == 'chat'){
+      PeerStream.onChatHandler.call(this,data.payload);
+    }
+  });
+  PeerStream.peerConnection.on('close', function() {
+    PeerStream.onPeerDisconnectedHandler.call();
+  });
+  PeerStream.peerConnection.on('error', function(err) {
+    console.log(err);
+    var data = {
+      type : 'error',
+      payload : 'data-connection-error'
+    };
+    PeerStream.onErrorHandler.call(this,data);
+  });
+}
+PeerStream.connect = function(selfId, peerId) {
+  PeerStream.selfId = selfId;
+  PeerStream.peerId = peerId;
 
-  // this.peer.on('connection', function(connection) {
-  //   this.peerConnection = connection;
-  //   this.peerConnection.on('data', function(data) {
-  //     if(data.type == 'chat'){
-  //       this.onChatHandler.call(data.payload);
-  //     }
-  //   });
-  //   this.onPeerConnectedHandler.call();
-  // });
-
-};
-PeerStream.prototype.connect = function(selfId) {
-  this.selfId = selfId;
-  _peer = new Peer(selfId, {
+ PeerStream.peer = new Peer(selfId, {
       key: 'iulf39j4p5w2ke29'
   });
-  _peer.on('open', function(id) {
-    console.log('self connected id = '+id);
-    this.onConnectedHandler.call();
-  });
-};
-PeerStream.prototype.onConnected = function(eventHandler) {
-  this.onConnectedHandler = eventHandler;
-};
-
-PeerStream.prototype.connectToPeer = function(peerId) {
-  this.peerId = peerId;
-  this.peerConnection = _peer.connect(peerId, {
-      label: "file",
-      reliable: true
-  });
-  this.peerConnection.on('open', function() {
-  // Receive messages
-    this.peerConnection.on('data', function(data) {
-      console.log('Received', data);
-        this.onOnChatHandler.call();
+ PeerStream.peer.on('open', function(id) {
+    PeerStream.onConnectedHandler.call();
+    PeerStream.peerConnection =PeerStream.peer.connect(peerId, {
+        reliable: true
     });
+    PeerStream.initPeerConnection();
   });
-  this.onPeerConnectedHandler.call();
+ PeerStream.peer.on('connection', function(connection) {
+    PeerStream.peerConnection = connection;
+    PeerStream.initPeerConnection();
+  });
+  PeerStream.peer.on('disconnected', function() {
+       PeerStream.onDisconnectedHandler.call();
+   });
+  PeerStream.peer.on('close', function() {
+      PeerStream.onDisconnectedHandler.call();
+   });
+ PeerStream.peer.on('error', function(err) {
+   var data = {
+     type : 'error',
+     payload : err.type
+   };
+    PeerStream.onErrorHandler.call(this,data);
+  });
+};
+PeerStream.onConnected = function(eventHandler) {
+  PeerStream.onConnectedHandler = eventHandler;
 };
 
-PeerStream.prototype.onPeerConnected = function(eventHandler) {
-  this.onPeerConnectedHandler = eventHandler;
+PeerStream.onDisconnected = function(eventHandler) {
+  PeerStream.onDisconnectedHandler = eventHandler;
 };
 
+PeerStream.onPeerConnected = function(eventHandler) {
+  PeerStream.onPeerConnectedHandler = eventHandler;
+};
 
-PeerStream.prototype.disConnect = function(peerId) {
+PeerStream.onPeerDisconnected = function(eventHandler) {
+  PeerStream.onPeerDisconnectedHandler = eventHandler;
+};
+
+PeerStream.disConnect = function(peerId) {
   //disConnect from peer
 };
 
-PeerStream.prototype.attachSource = function(sourceObject) {
+PeerStream.attachSource = function(sourceObject) {
   //connect to peer
 };
 
-PeerStream.prototype.play = function() {
+PeerStream.play = function() {
   //connect to peer
 };
 
-PeerStream.prototype.pause = function() {
+PeerStream.pause = function() {
   //connect to peer
 };
 
-PeerStream.prototype.seek = function(seekedTime) {
+PeerStream.seek = function(seekedTime) {
   //connect to peer
 };
 
-PeerStream.prototype.stop = function() {
+PeerStream.stop = function() {
   //connect to peer
 };
 
-PeerStream.prototype.startCall = function() {
+PeerStream.startCall = function() {
   //connect to peer
 };
 
-PeerStream.prototype.stopCall = function() {
+PeerStream.stopCall = function() {
   //connect to peer
 };
 
-PeerStream.prototype.chat = function(message) {
+PeerStream.chat = function(message) {
   var data = {
-    //id : 'some unique id for this message',
+    //id : 'some unique id for PeerStream message',
     type : 'chat',
     payload : message
   };
-  this.peerConnection.send(data);
+  PeerStream.peerConnection.send(data);
 };
 
-PeerStream.prototype.onChat = function(eventHandler) {
-  this.onChatHandler = eventHandler;
+PeerStream.onChat = function(eventHandler) {
+  PeerStream.onChatHandler = eventHandler;
 };
 
-PeerStream.prototype.signal = function(message) {
+PeerStream.signal = function(message) {
   //connect to peer
 };
 
-PeerStream.prototype.error = function(message) {
+PeerStream.error = function(message) {
   //connect to peer
+};
+
+PeerStream.onError = function(eventHandler) {
+  PeerStream.onErrorHandler = eventHandler;
 };

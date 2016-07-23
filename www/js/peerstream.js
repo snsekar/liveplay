@@ -10,6 +10,7 @@ PeerStream.onPeerConnectedHandler = "";
 PeerStream.onPeerDisconnectedHandler = "";
 PeerStream.onChatHandler = "";
 PeerStream.onErrorHandler = "";
+PeerStream._onData = "";
 
 PeerStream.initPeerConnection = function () {
   PeerStream.peerConnection.on('open', function() {
@@ -18,6 +19,9 @@ PeerStream.initPeerConnection = function () {
   PeerStream.peerConnection.on('data', function(data) {
     if(data.type == 'chat'){
       PeerStream.onChatHandler.call(this,data.payload);
+    }
+    if(data.type == '_data'){
+      PeerStream._onData(data);
     }
   });
   PeerStream.peerConnection.on('close', function() {
@@ -84,7 +88,7 @@ PeerStream.disConnect = function(peerId) {
   //disConnect from peer
 };
 
-PeerStream.attachSource = function(sourceObject) {
+PeerStream.attachMedia = function(sourceObject) {
   //connect to peer
 };
 
@@ -135,4 +139,30 @@ PeerStream.error = function(message) {
 
 PeerStream.onError = function(eventHandler) {
   PeerStream.onErrorHandler = eventHandler;
+};
+
+PeerStream._sendData(event,data){
+  var _data = {
+    //id : 'some unique id for PeerStream message',
+    type : "_data",
+    event: event,
+    payload : data
+  };
+  PeerStream.peerConnection.send(_data);
+}
+
+PeerStream._onData = function(data) {
+ if(data.event == 'audio-chunk'){
+   //append to audio buffer
+   if(data.data != ""){
+    PeerStream._sendData('audio-chunk-ack',"");
+   }
+ }
+
+ if(data.event == 'audio-chunk-ack'){
+   //fetch next audio-chunk from source
+   //append to audio buffer
+   var audioChunk = "";
+   PeerStream._sendData('audio-chunk',audioChunk);
+ }
 };

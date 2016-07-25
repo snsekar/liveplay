@@ -9,7 +9,7 @@
       function connect() {
         var selfId = document.getElementById("selfId").value;
         var peerId = document.getElementById("peerId").value;
-        PeerStream.connect(selfId, peerId);
+        PeerStream.connect(selfId, peerId, "audio_player");
       }
 
       function sendMessage() {
@@ -35,6 +35,11 @@
       PeerStream.onError(function(err){
        console.log('error :' + JSON.stringify(err));
       });
+
+      function handleFileSelect(fileObj) {
+        var files = fileObj.files;
+        PeerStream.attachSource("file",files[0]);
+      }
     </script>
   </head>
   <body>
@@ -46,5 +51,11 @@
     <button onclick="connect()">Connect me</button>
     <br>
     Message:<input type = "text" id="message"/><button onclick="sendMessage()">Send message</button>
+    <div>
+      <input type="file" id="selectedFile" style="display: none;" accept="audio/*" onchange="handleFileSelect(this)"/>
+      <input type="button" value="Choose song" onclick="document.getElementById('selectedFile').click();" style="height: 50px;width:80%;max-width: 250px;"/>
+      <br/><br/>
+      <audio controls id="audio_player" style="width:80%;max-width: 250px;"/>
+    </div>
   </body>
 </html>

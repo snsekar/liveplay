@@ -4,6 +4,18 @@ PeerStream.peerId = "";
 PeerStream.peer = "";
 PeerStream.peerConnection = "";
 
+PeerStream._audioElement = "";
+PeerStream._mediaSource =  new MediaSource();
+PeerStream._mediaSourceBuffer = "";
+
+PeerStream._fileSourceObject = {
+  file : {},
+  fileCursor : 0,
+  fileChunkSize : 256 * 1024;
+};
+
+
+
 PeerStream.onConnectedHandler = "";
 PeerStream.onDisconnectedHandler = "";
 PeerStream.onPeerConnectedHandler = "";
@@ -88,8 +100,17 @@ PeerStream.disConnect = function(peerId) {
   //disConnect from peer
 };
 
-PeerStream.attachMedia = function(sourceObject) {
+PeerStream.attachMedia = function(mediaElementId, mediaType, mediaSourceObject) {
   //connect to peer
+  PeerStream._audioElement = document.getElementById(mediaElementId);
+  PeerStream._audioElement.src = window.URL.createObjectURL(PeerStream._mediaSource);
+  PeerStream._mediaSource.addEventListener('sourceopen', function(e) {
+    PeerStream._mediaSourceBuffer = PeerStream._mediaSource.addSourceBuffer('audio/mpeg');
+  }, false);
+  if(mediaType == 'file'){
+    PeerStream._fileSourceObject.file = mediaSourceObject;
+    PeerStream._fetchNextFileChunk();
+  }
 };
 
 PeerStream.play = function() {
@@ -152,17 +173,39 @@ PeerStream._sendData(event,data){
 }
 
 PeerStream._onData = function(data) {
- if(data.event == 'audio-chunk'){
+ if(data.event == 'media-chunk'){
    //append to audio buffer
    if(data.data != ""){
-    PeerStream._sendData('audio-chunk-ack',"");
+    PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(evt.target.result));
+    PeerStream._sendData('media-chunk-ack',"");
    }
  }
 
- if(data.event == 'audio-chunk-ack'){
-   //fetch next audio-chunk from source
-   //append to audio buffer
-   var audioChunk = "";
-   PeerStream._sendData('audio-chunk',audioChunk);
+ if(data.event == 'media-chunk-ack'){
+   PeerStream._fetchNextFileChunk();
  }
 };
+
+PeerStream._fetchNextFileChunk = function () {
+  var r = new FileReader();
+  var cursor = PeerStream._fileSourceObject.fileCursor;
+  var chunkSize = PeerStream._fileSourceObject.fileChunkSize;
+  var fileSize = PeerStream._fileSourceObject.file.size;
+  var blob = PeerStream._fileSourceObject.file.slice(cursor,cursor+chunkSize);
+  r.onload = function(evt) {
+      if (evt.target.error == null) {
+          PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(evt.target.result));
+          PeerStream._sendData("media-chunk", evt.target.result);
+      } else {
+          console.log("Read error: " + evt.target.error);
+          //stop playback
+          return;
+      }
+      if (cursor >= fileSize) {
+          console.log(" *** Done reading file *** ");
+          return;
+      }
+       PeerStream._fileSourceObject.fileCursor = cursor + chunkSize;
+  };
+  r.readAsArrayBuffer(blob);
+}

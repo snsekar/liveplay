@@ -47,7 +47,7 @@
      if (data.action == 'file-chunk') {
 		//console.log('file chunk received');
         writeToPlayBuffer(data.data,false);
-        
+
      }
      if (data.action == 'send-next-file-chunk') {
 		//console.log('start play');
@@ -57,11 +57,11 @@
              fetchNextFileChunk(writeToPlayBuffer);
          }
      }
-	 				
+
 	if (data.action == 'buffering-done') {
 		$scope.isBuffering = false;
 	}
-	
+
      $scope.$digest();
 
  }

@@ -121,7 +121,8 @@ PeerStream.attachSource = function(mediaType, mediaSourceObject) {
   var metadata = {};
   PeerStream._sendData("source-attached",metadata);
   if(mediaType == 'file'){
-    PeerStream._fileSourceObject.file = mediaSourceObject;
+    PeerStream._fileSourceObject.file = mediaSourceObject ;
+    PeerStream._fileSourceObject.fileCursor = 0 ;
     PeerStream._fetchNextFileChunk();
   }
 };
@@ -192,7 +193,9 @@ PeerStream._onData = function(data) {
     PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(data.payload));
     console.log('media-chunk-appended');
     PeerStream._sendData('media-chunk-ack',"");
-   }
+  }else{
+    console.log(" *** Done receiving file *** ");
+  }
  }
 
  if(data.event == 'media-chunk-ack'){
@@ -211,6 +214,11 @@ PeerStream._fetchNextFileChunk = function () {
   var cursor = PeerStream._fileSourceObject.fileCursor;
   var chunkSize = PeerStream._fileSourceObject.fileChunkSize;
   var fileSize = PeerStream._fileSourceObject.file.size;
+  if (cursor > fileSize) {
+      console.log(" *** Done reading file *** ");
+      PeerStream._sendData("media-chunk", "");
+      return;
+  }
   var blob = PeerStream._fileSourceObject.file.slice(cursor,cursor+chunkSize);
   r.onload = function(evt) {
       if (evt.target.error == null) {
@@ -222,11 +230,7 @@ PeerStream._fetchNextFileChunk = function () {
           //stop playback
           return;
       }
-      if (cursor >= fileSize) {
-          console.log(" *** Done reading file *** ");
-          PeerStream._sendData("media-chunk", "");
-          return;
-      }
+
        PeerStream._fileSourceObject.fileCursor = cursor + chunkSize;
   };
   r.readAsArrayBuffer(blob);

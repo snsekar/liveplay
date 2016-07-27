@@ -82,9 +82,7 @@ PeerStream.connect = function(selfId, peerId, mediaElementId) {
 
   PeerStream._audioElement = document.getElementById(mediaElementId);
   PeerStream._audioElement.src = window.URL.createObjectURL(PeerStream._mediaSource);
-  PeerStream._mediaSource.addEventListener('sourceopen', function(e) {
-    PeerStream._mediaSourceBuffer = PeerStream._mediaSource.addSourceBuffer('audio/mpeg');
-  }, false);
+
 };
 PeerStream.onConnected = function(eventHandler) {
   PeerStream.onConnectedHandler = eventHandler;
@@ -105,20 +103,27 @@ PeerStream.onPeerDisconnected = function(eventHandler) {
 PeerStream.disConnect = function(peerId) {
   //disConnect from peer
 };
-
-PeerStream.initMedia = function(mediaElementId) {
-  PeerStream._audioElement = document.getElementById(mediaElementId);
-  PeerStream._audioElement.src = window.URL.createObjectURL(PeerStream._mediaSource);
-  PeerStream._mediaSource.addEventListener('sourceopen', function(e) {
-    PeerStream._mediaSourceBuffer = PeerStream._mediaSource.addSourceBuffer('audio/mpeg');
-  }, false);
-};
-
-PeerStream.attachSource = function(mediaType, mediaSourceObject) {
+PeerStream.resetPlayBack = function(mediaMIMEType) {
   //stop playback
+  PeerStream.stop();
+
   //clear buffer
-  //get metadata about soucre and display. Title,Duration,Album art
-  var metadata = {};
+  var bufferListLength = PeerStream._mediaSource.sourceBuffers.length;
+  if(bufferListLength > 0){
+    for(var i = 0; i < bufferListLength; i++){
+      PeerStream._mediaSource.removeSourceBuffer(PeerStream._mediaSource.sourceBuffers[i]);
+    }
+  }
+
+  PeerStream._mediaSourceBuffer = PeerStream._mediaSource.addSourceBuffer(mediaMIMEType);
+}
+PeerStream.attachSource = function(mediaType, mediaSourceObject) {
+
+  //get metadata about soucre and display. Title,Duration,Album art,MIME type
+  var metadata = {
+    mimeType : 'audio/mpeg'
+  };
+  PeerStream.resetPlayBack(metadata.mimeType);
   PeerStream._sendData("source-attached",metadata);
   if(mediaType == 'file'){
     PeerStream._fileSourceObject.file = mediaSourceObject ;
@@ -203,9 +208,9 @@ PeerStream._onData = function(data) {
  }
 
  if(data.event == 'source-attached'){
-   //stop playback
-   //clear buffer
-   //get metadata about soucre and display. Title,Duration,Album art
+   //get metadata about source and display. Title,Duration,Album art
+   PeerStream.resetPlayBack(data.payload.mimeType);
+
  }
 };
 
@@ -219,7 +224,7 @@ PeerStream._fetchNextFileChunk = function () {
       PeerStream._sendData("media-chunk", "");
       return;
   }
-  var blob = PeerStream._fileSourceObject.file.slice(cursor,cursor+chunkSize);
+  var blob = PeerStream._fileSourceObject.file.slice(cursor, cursor + chunkSize);
   r.onload = function(evt) {
       if (evt.target.error == null) {
           PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(evt.target.result));

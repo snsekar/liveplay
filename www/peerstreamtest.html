@@ -48,14 +48,21 @@
     <br>
     peerId:<input type = "text" id="peerId"/>
     <br>
-    <button onclick="connect()">Connect me</button>
-    <br>
+    <input type="button" value="Connect" onclick="connect()" style="height: 50px;width:80%;max-width: 250px;"/>
+    <br/><br/>
     Message:<input type = "text" id="message"/><button onclick="sendMessage()">Send message</button>
-    <div>
-      <input type="file" id="selectedFile" style="display: none;" accept="audio/*" onchange="handleFileSelect(this)"/>
-      <input type="button" value="Choose song" onclick="document.getElementById('selectedFile').click();" style="height: 50px;width:80%;max-width: 250px;"/>
-      <br/><br/>
-      <audio controls id="audio_player" style="width:80%;max-width: 250px;"/>
-    </div>
+    <br/><br/>
+    <audio controls id="audio_player" style="width:80%;max-width: 250px;"></audio>
+    <br/>
+    <input type="file" id="selectedFile" style="display: none;" accept="audio/*" onchange="handleFileSelect(this)"/>
+    <input type="button" value="Choose song" onclick="document.getElementById('selectedFile').click();" style="height: 50px;width:80%;max-width: 250px;"/>
+    <br/><br/>
+
+    <audio controls id="audio_call" style="width:80%;max-width: 250px;"></audio>
+    <br/>
+    <input type="button" value="Start call" onclick="PeerStream.startCall()" style="height: 50px;width:80%;max-width: 250px;"/>
+    <br/>
+    <input type="button" value="Stop call" onclick="PeerStream.stopCall()" style="height: 50px;width:80%;max-width: 250px;"/>
+
   </body>
 </html>

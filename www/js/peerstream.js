@@ -5,7 +5,7 @@ PeerStream.peer = "";
 PeerStream.peerConnection = "";
 
 PeerStream._audioElement = "";
-PeerStream._mediaSource =  new MediaSource();
+PeerStream._mediaSource =  "";
 PeerStream._mediaSourceBuffer = "";
 
 PeerStream._fileSourceObject = {
@@ -81,8 +81,6 @@ PeerStream.connect = function(selfId, peerId, mediaElementId) {
   });
 
   PeerStream._audioElement = document.getElementById(mediaElementId);
-  PeerStream._audioElement.src = window.URL.createObjectURL(PeerStream._mediaSource);
-
 };
 PeerStream.onConnected = function(eventHandler) {
   PeerStream.onConnectedHandler = eventHandler;
@@ -106,16 +104,10 @@ PeerStream.disConnect = function(peerId) {
 PeerStream.resetPlayBack = function(mediaMIMEType) {
   //stop playback
   PeerStream.stop();
-
   //clear buffer
-  var bufferListLength = PeerStream._mediaSource.sourceBuffers.length;
-  if(bufferListLength > 0){
-    for(var i = 0; i < bufferListLength; i++){
-      PeerStream._mediaSource.removeSourceBuffer(PeerStream._mediaSource.sourceBuffers[i]);
-    }
-  }
-
-  PeerStream._mediaSourceBuffer = PeerStream._mediaSource.addSourceBuffer(mediaMIMEType);
+  PeerStream._mediaSource =  new MediaSource();
+  PeerStream._mediaSourceBuffer ="";
+  PeerStream._audioElement.src = window.URL.createObjectURL(PeerStream._mediaSource);
 }
 PeerStream.attachSource = function(mediaType, mediaSourceObject) {
 
@@ -195,11 +187,15 @@ PeerStream._onData = function(data) {
  if(data.event == 'media-chunk'){
    //append to audio buffer
    if(data.payload != ""){
+     if(PeerStream._mediaSourceBuffer == ""){
+       PeerStream._mediaSourceBuffer = PeerStream._mediaSource.addSourceBuffer('audio/mpeg');
+     }
     PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(data.payload));
     console.log('media-chunk-appended');
     PeerStream._sendData('media-chunk-ack',"");
   }else{
     console.log(" *** Done receiving file *** ");
+    PeerStream._mediaSource.endOfStream();
   }
  }
 
@@ -221,12 +217,17 @@ PeerStream._fetchNextFileChunk = function () {
   var fileSize = PeerStream._fileSourceObject.file.size;
   if (cursor > fileSize) {
       console.log(" *** Done reading file *** ");
+      PeerStream._mediaSource.endOfStream();
       PeerStream._sendData("media-chunk", "");
       return;
   }
   var blob = PeerStream._fileSourceObject.file.slice(cursor, cursor + chunkSize);
   r.onload = function(evt) {
       if (evt.target.error == null) {
+        if(PeerStream._mediaSourceBuffer == ""){
+          PeerStream._mediaSourceBuffer = PeerStream._mediaSource.addSourceBuffer('audio/mpeg');
+        }
+
           PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(evt.target.result));
           console.log('media-chunk-appended');
           PeerStream._sendData("media-chunk", evt.target.result);

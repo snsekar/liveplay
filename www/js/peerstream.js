@@ -79,7 +79,7 @@ PeerStream.connect = function(selfId, peerId, mediaElementId) {
        audio_element_call.play();
       });
     }, function(err) {
-      console.log('Failed to get receiver local stream' ,err);
+      alert('Failed to get receiver local stream' ,JSON.stringify(err));
     });
   });
   PeerStream.peer.on('disconnected', function() {
@@ -169,7 +169,7 @@ PeerStream.startCall = function() {
          audio_element_call.play();
         });
       }, function(err) {
-        console.log('Failed to get caller local stream' ,JSON.stringify(err));
+        alert('Failed to get caller local stream' ,JSON.stringify(err));
       });
 };
 

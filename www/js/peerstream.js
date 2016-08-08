@@ -18,11 +18,18 @@ PeerStream._fileSourceObject = {
 
 PeerStream.onConnectedHandler = "";
 PeerStream.onDisconnectedHandler = "";
+PeerStream.onCallConnectedHandler = "";
+PeerStream.onCallDisconnectedHandler = "";
 PeerStream.onPeerConnectedHandler = "";
 PeerStream.onPeerDisconnectedHandler = "";
 PeerStream.onChatHandler = "";
 PeerStream.onErrorHandler = "";
 PeerStream._onData = "";
+
+PeerStream.onPlayHandler = "";
+PeerStream.onPauseHandler = "";
+PeerStream.onPeerPlayHandler = "";
+PeerStream.onPeerPauseHandler = "";
 
 PeerStream.initPeerConnection = function () {
   PeerStream.peerConnection.on('open', function() {
@@ -67,20 +74,22 @@ PeerStream.connect = function(selfId, peerId, mediaElementId) {
     PeerStream.initPeerConnection();
   });
   PeerStream.peer.on('call', function(call) {
-   console.log('call received');
     PeerStream.callConnection = call;
     navigator.webkitGetUserMedia({video: false, audio: true}, function(stream) {
-      call.answer(stream); // Answer the call with an A/V stream.
-      console.log('call answered');
+      call.answer(stream);
       call.on('stream', function(remoteStream) {
-        console.log('call connected');
        var audio_element_call = document.getElementById('audio_call');
        audio_element_call.src = URL.createObjectURL(remoteStream);
        audio_element_call.play();
+       PeerStream.onCallConnectedHandler.call();
       });
+      call.on('close', function() {
+          PeerStream.onCallDisconnectedHandler.call();
+       });
     }, function(err) {
       alert('Failed to get receiver local stream' ,JSON.stringify(err));
     });
+
   });
   PeerStream.peer.on('disconnected', function() {
        PeerStream.onDisconnectedHandler.call();
@@ -113,6 +122,27 @@ PeerStream.onPeerConnected = function(eventHandler) {
 PeerStream.onPeerDisconnected = function(eventHandler) {
   PeerStream.onPeerDisconnectedHandler = eventHandler;
 };
+PeerStream.onChat = function(eventHandler) {
+  PeerStream.onChatHandler = eventHandler;
+};
+PeerStream.onCallConnected = function(eventHandler) {
+  PeerStream.onCallConnectedHandler = eventHandler;
+};
+PeerStream.onCallDisconnected = function(eventHandler) {
+  PeerStream.onCallDisconnectedHandler = eventHandler;
+};
+PeerStream.onPlay = function(eventHandler) {
+  PeerStream.onPlayHandler = eventHandler;
+};
+PeerStream.onPause = function(eventHandler) {
+  PeerStream.onPauseHandler = eventHandler;
+};
+PeerStream.onPeerPlay = function(eventHandler) {
+  PeerStream.onPeerPlayHandler = eventHandler;
+};
+PeerStream.onPeerPause = function(eventHandler) {
+  PeerStream.onPeerPauseHandler = eventHandler;
+};
 
 PeerStream.disConnect = function(peerId) {
   //disConnect from peer
@@ -141,11 +171,16 @@ PeerStream.attachSource = function(mediaType, mediaSourceObject) {
 };
 
 PeerStream.play = function() {
-  //connect to peer
+  PeerStream._audioElement.play();
+  PeerStream._sendData("play","");
+  PeerStream.onPlayHandler.call();
 };
 
 PeerStream.pause = function() {
-  //connect to peer
+  PeerStream._audioElement.pause();
+  PeerStream._sendData("pause","");
+  PeerStream.onPauseHandler.call();
+
 };
 
 PeerStream.seek = function(seekedTime) {
@@ -160,14 +195,15 @@ PeerStream.startCall = function() {
   navigator.webkitGetUserMedia({video: false, audio: true}, function(stream) {
         var call = PeerStream.peer.call(PeerStream.peerId, stream);
         PeerStream.callConnection = call;
-        console.log('call initiated');
         call.on('stream', function(remoteStream) {
-          // Show stream in some video/canvas element.
-          console.log('call connected');
-          var audio_element_call = document.getElementById('audio_call');
+         var audio_element_call = document.getElementById('audio_call');
          audio_element_call.src = URL.createObjectURL(remoteStream);
          audio_element_call.play();
+         PeerStream.onCallConnectedHandler.call();
         });
+        call.on('close', function() {
+            PeerStream.onCallDisconnectedHandler.call();
+         });
       }, function(err) {
         alert('Failed to get caller local stream' ,JSON.stringify(err));
       });
@@ -187,9 +223,7 @@ PeerStream.chat = function(message) {
   PeerStream.peerConnection.send(data);
 };
 
-PeerStream.onChat = function(eventHandler) {
-  PeerStream.onChatHandler = eventHandler;
-};
+
 
 PeerStream.signal = function(message) {
   //connect to peer
@@ -238,6 +272,14 @@ PeerStream._onData = function(data) {
    PeerStream.resetPlayBack(data.payload.mimeType);
 
  }
+ if(data.event == 'play'){
+   PeerStream._audioElement.play();
+   PeerStream.onPeerPlayHandler.call();
+ }
+ if(data.event == 'pause'){
+   PeerStream._audioElement.pause();
+   PeerStream.onPeerPauseHandler.call();
+ }
 };
 
 PeerStream._fetchNextFileChunk = function () {
@@ -255,12 +297,19 @@ PeerStream._fetchNextFileChunk = function () {
   r.onload = function(evt) {
       if (evt.target.error == null) {
         if(PeerStream._mediaSourceBuffer == ""){
-          PeerStream._mediaSourceBuffer = PeerStream._mediaSource.addSourceBuffer('audio/mpeg');
-        }
-
+          setTimeout(function() {
+            PeerStream._mediaSourceBuffer = PeerStream._mediaSource.addSourceBuffer('audio/mpeg');
+            PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(evt.target.result));
+            console.log('media-chunk-appended');
+            PeerStream._sendData("media-chunk", evt.target.result);
+          }, 1500);
+        }else{
           PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(evt.target.result));
           console.log('media-chunk-appended');
           PeerStream._sendData("media-chunk", evt.target.result);
+        }
+
+
       } else {
           console.log("Read error: " + evt.target.error);
           //stop playback

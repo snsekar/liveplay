@@ -25,6 +25,12 @@
       PeerStream.onDisconnected(function(){
         console.log('dis-connected');
       });
+      PeerStream.onCallConnected(function(){
+        console.log('call connected');
+      });
+      PeerStream.onCallDisconnected(function(){
+        console.log('call dis-connected');
+      });
       PeerStream.onPeerConnected(function(){
        console.log('peer connected');
       });
@@ -36,6 +42,19 @@
       });
       PeerStream.onError(function(err){
        console.log('error :' + JSON.stringify(err));
+      });
+
+      PeerStream.onPlay(function(){
+       console.log('play');
+      });
+      PeerStream.onPause(function(){
+       console.log('pause');
+      });
+      PeerStream.onPeerPlay(function(){
+       console.log('peer play');
+      });
+      PeerStream.onPeerPause(function(){
+       console.log('peer pause');
       });
 
       function handleFileSelect(fileObj) {
@@ -55,6 +74,10 @@
     Message:<input type = "text" id="message"/><button onclick="sendMessage()">Send message</button>
     <br/><br/>
     <audio controls id="audio_player" style="width:80%;max-width: 250px;"></audio>
+    <br/>
+    <input type="button" value="Play" onclick="PeerStream.play()" style="height: 50px;width:40%;max-width: 250px;"/>
+    <input type="button" value="Pause" onclick="PeerStream.pause()" style="height: 50px;width:40%;max-width: 250px;"/>
+
     <br/>
     <input type="file" id="selectedFile" style="display: none;" accept="audio/*" onchange="handleFileSelect(this)"/>
     <input type="button" value="Choose song" onclick="document.getElementById('selectedFile').click();" style="height: 50px;width:80%;max-width: 250px;"/>

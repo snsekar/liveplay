@@ -3,13 +3,13 @@ angular.module('starter.controllers', [])
 .controller('AppCtrl', function($scope, $ionicModal, $timeout, $ionicPlatform, $ionicLoading, $ionicSideMenuDelegate, $ionicTabsDelegate) {
 
 	initIonicVars($scope,$ionicLoading,$ionicSideMenuDelegate);
-	//Start of app 
+	//Start of app
     $timeout(function() {
 
         $scope.initApp();
 
     }, 2000);
-	
+
     $scope.selectTabWithIndex = function(index) {
         $ionicTabsDelegate.select(index);
     }
@@ -32,9 +32,9 @@ angular.module('starter.controllers', [])
             $scope.selectedSong = 'Choose song';
             $scope.selectedSongPath = ' ';
             $scope.duplicateID = false;
-			
+
 			$scope.isBuffering = false;
-			
+
             // alert();
             if (localStorage['myid'] && localStorage['partnerid']) {
                 myid = localStorage['myid'];
@@ -54,7 +54,7 @@ angular.module('starter.controllers', [])
 
 
         }
- 
+
     $scope.resetUserData = function() {
         localStorage.removeItem('myid');
         localStorage.removeItem('partnerid');
@@ -85,7 +85,7 @@ angular.module('starter.controllers', [])
     $scope.songSelected = function(songObj) {
         song = songObj;
         $scope.selectedSong = song.name;
-		
+
 		// music control begin
 		function onMSuccess(){
 			//alert('Music control success');
@@ -112,7 +112,7 @@ angular.module('starter.controllers', [])
 			// text displayed in the status bar when the notification (and the ticker) are updated
 			ticker    : song.name
 		}, onMSuccess, onMError);
-		
+
 		function events(action) {
 			switch(action) {
 				case 'music-controls-next':
@@ -168,7 +168,7 @@ angular.module('starter.controllers', [])
 
     }
 	    $scope.makeCall = function() {
-		
+
 		//var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 		//alert(navigator.userAgent);
 		navigator.webkitGetUserMedia({video: false, audio: true}, function(stream) {
@@ -327,27 +327,3 @@ angular.module('starter.controllers', [])
 
     };
 })
-
-.controller('PlaylistsCtrl', function($scope) {
-    $scope.playlists = [{
-        title: 'Reggae',
-        id: 1
-    }, {
-        title: 'Chill',
-        id: 2
-    }, {
-        title: 'Dubstep',
-        id: 3
-    }, {
-        title: 'Indie',
-        id: 4
-    }, {
-        title: 'Rap',
-        id: 5
-    }, {
-        title: 'Cowbell',
-        id: 6
-    }];
-})
-
-.controller('PlaylistCtrl', function($scope, $stateParams) {});

@@ -24,7 +24,16 @@
     {
       "locator": "https://github.com/homerours/cordova-music-controls-plugin",
       "id": "cordova-plugin-music-controls"
-    }
+    },
+    {
+      "variables": {
+        "FABRIC_API_KEY": "a5e118d3a829990efcaac1436b8665de3e0b2bfc",
+        "FABRIC_API_SECRET": "f6dd6f415d913d681a43fdf687d96b29acaa88f3d7217e73681ca56b7c0b55d7"
+      },
+      "locator": "cordova-fabric-plugin",
+      "id": "cordova-fabric-plugin"
+    },
+    "cordova-plugin-file"
   ],
   "cordovaPlatforms": [
     "android"

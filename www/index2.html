@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>PeerStream Demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+    <script type="text/javascript" src="js/peer.js"></script>
+    <script type="text/javascript" src="js/peerstream.js"></script>
+    <script src="cordova.js"></script>
+    <script>
+
+      function connect() {
+        window.fabric.Crashlytics.sendNonFatalCrash("Sekar check!!!");
+        var attributes = {
+            foo: "data",
+            bar: true,
+          };
+          window.fabric.Answers.sendSignUp("Sekar Facebook", true, attributes);
+        var selfId = document.getElementById("selfId").value;
+        var peerId = document.getElementById("peerId").value;
+        PeerStream.connect(selfId, peerId, "audio_player");
+      }
+
+      function sendMessage() {
+        var msg = document.getElementById("message").value;
+        PeerStream.chat(msg);
+      }
+
+      PeerStream.onConnected(function(){
+        console.log('connected');
+      });
+      PeerStream.onDisconnected(function(){
+        console.log('dis-connected');
+      });
+      PeerStream.onCallConnected(function(){
+        console.log('call connected');
+      });
+      PeerStream.onCallDisconnected(function(){
+        console.log('call dis-connected');
+      });
+      PeerStream.onPeerConnected(function(){
+       console.log('peer connected');
+      });
+      PeerStream.onPeerDisconnected(function(){
+       console.log('peer dis-connected');
+      });
+      PeerStream.onChat(function(chatMessage){
+       console.log('chat : '+chatMessage);
+      });
+      PeerStream.onError(function(err){
+       console.log('error :' + JSON.stringify(err));
+      });
+
+      PeerStream.onPlay(function(){
+       console.log('play');
+      });
+      PeerStream.onPause(function(){
+       console.log('pause');
+      });
+      PeerStream.onPeerPlay(function(){
+       console.log('peer play');
+      });
+      PeerStream.onPeerPause(function(){
+       console.log('peer pause');
+      });
+
+      function handleFileSelect(fileObj) {
+        var files = fileObj.files;
+        PeerStream.attachSource("file",files[0]);
+      }
+    </script>
+  </head>
+  <body>
+    <h2>PeerStream Demo !!! </h2>
+    selfId:<input type = "text" id="selfId"/>
+    <br>
+    peerId:<input type = "text" id="peerId"/>
+    <br>
+    <input type="button" value="Connect" onclick="connect()" style="height: 50px;width:80%;max-width: 250px;"/>
+    <br/><br/>
+    Message:<input type = "text" id="message"/><button onclick="sendMessage()">Send message</button>
+    <br/><br/>
+    <audio controls id="audio_player" style="width:80%;max-width: 250px;"></audio>
+    <br/>
+    <input type="button" value="Play" onclick="PeerStream.play()" style="height: 50px;width:40%;max-width: 250px;"/>
+    <input type="button" value="Pause" onclick="PeerStream.pause()" style="height: 50px;width:40%;max-width: 250px;"/>
+
+    <br/>
+    <input type="file" id="selectedFile" style="display: none;" accept="audio/*" onchange="handleFileSelect(this)"/>
+    <input type="button" value="Choose song" onclick="document.getElementById('selectedFile').click();" style="height: 50px;width:80%;max-width: 250px;"/>
+    <br/><br/>
+
+    <audio controls id="audio_call" style="width:80%;max-width: 250px;"></audio>
+    <br/>
+    <input type="button" value="Start call" onclick="PeerStream.startCall()" style="height: 50px;width:80%;max-width: 250px;"/>
+    <br/>
+    <input type="button" value="Stop call" onclick="PeerStream.stopCall()" style="height: 50px;width:80%;max-width: 250px;"/>
+
+  </body>
+</html>

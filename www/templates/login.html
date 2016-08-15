@@ -2,34 +2,64 @@
   <ion-header-bar>
     <h1 class="title">LivePlay</h1>
   </ion-header-bar>
-  <ion-content>
-  
-	  <form ng-submit="doLogin()">	
-      <div class="list">	
-		<div class="item item-input-inset" ng-show = "duplicateID">
-			<span class="input-label assertive" >Please use different name!!!</span>			
-			
-		</div>		  
-		<div class="item item-input-inset">
-			<span class="input-label">Your name  : &nbsp;&nbsp;&nbsp;   </span>
-			<label class="item-input-wrapper">			
-			 <input class="item-input-wrapper" type="text" ng-model="loginData.youname" ng-init="loginData.youname = you">
-			</label>
-		</div>
-		<div class="item item-input-inset">
-			<span class="input-label">Partner name :</span>
-			<label class="item-input-wrapper">			
-				<input type="text" ng-model="loginData.partnername"  ng-init="loginData.partnername = partner">
-			</label>
-		</div>
+  <ion-content scroll="false">
+    <ion-slide-box on-slide-changed="loginSlideHasChanged($index)" show-pager=false ng-init="disableLoginSwipe()">
+      <ion-slide>
+        <br/><br/><br/>
+        <form ng-submit="sendVerificationCode()">
+          <div class="list">
+            <div class="item item-input-inset">
+              <span class="input-label">Mobile : </span>
+              <label class="item-input-wrapper">
+               <input class="item-input-wrapper" type="text" ng-model="loginData.user_id" ng-init="+91">
+              </label>
 
-        <label class="item">
-          <button class="button button-block button-positive" type="submit">Connect</button>
-        </label>
-      </div>
-	  
-	  
-    </form>
+            </div>
+            <div class="item item-input-inset" ng-show = "loginData.wrongMobileNumber">
+              <span class="input-label assertive" >Wrong mobile number!!!</span>
+            </div>
+            <span>Please enter mobile number with country code. For example: +919876543210</span>
+            <label class="item">
+              <button class="button button-block button-positive" type="submit">Send verification code</button>
+            </label>
+          </div>
+        </form>
+      </ion-slide>
+      <ion-slide>
+        <form ng-submit="verifyCode()">
+          <div class="list">
+            <span> We have sent verification code by sms to this mobile number {{loginData.user_id}}. Please enter the code below</span>
+
+            <div class="item item-input-inset">
+              <span class="input-label">Enter code : </span>
+              <label class="item-input-wrapper">
+               <input class="item-input-wrapper" type="text" ng-model="loginData.entered_code">
+              </label>
+            </div>
+            <div class="item item-input-inset" ng-show = "loginData.wrongcode">
+              <span class="input-label assertive" >Wrong code!!!</span>
+            </div>
+            <label class="item">
+              <button class="button button-block button-positive" type="submit">Login</button>
+            </label>
+          </div>
+        </form>
+      </ion-slide>
+      <ion-slide>
+        <form ng-submit="signUp()">
+          <div class="list">
+            <div class="item item-input-inset">
+              <span class="input-label">Your name : </span>
+              <label class="item-input-wrapper">
+               <input class="item-input-wrapper" type="text" ng-model="loginData.user_name">
+              </label>
+            </div>
+            <label class="item">
+              <button class="button button-block button-positive" type="submit">Lets Go!!!</button>
+            </label>
+          </div>
+        </form>
+      </ion-slide>
+    </ion-slide-box>
   </ion-content>
 </ion-modal-view>
- 

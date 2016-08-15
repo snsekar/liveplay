@@ -1,8 +1,46 @@
-angular.module('starter.controllers', [])
+angular.module('starter.controllers', [])// All this does is allow the message
+// to be sent when you tap return
+.directive('input', function($timeout) {
+  return {
+    restrict: 'E',
+    scope: {
+      'returnClose': '=',
+      'onReturn': '&',
+      'onFocus': '&',
+      'onBlur': '&'
+    },
+    link: function(scope, element, attr) {
+      element.bind('focus', function(e) {
+        if (scope.onFocus) {
+          $timeout(function() {
+            scope.onFocus();
+          });
+        }
+      });
+      element.bind('blur', function(e) {
+        if (scope.onBlur) {
+          $timeout(function() {
+            scope.onBlur();
+          });
+        }
+      });
+      element.bind('keydown', function(e) {
+        if (e.which == 13) {
+          if (scope.returnClose) element[0].blur();
+          if (scope.onReturn) {
+            $timeout(function() {
+              scope.onReturn();
+            });
+          }
+        }
+      });
+    }
+  }
+})
 
-.controller('AppCtrl', function($scope, $ionicModal, $timeout, $ionicPlatform, $ionicLoading, $ionicSideMenuDelegate, $ionicTabsDelegate) {
+.controller('AppCtrl', function($scope, $ionicModal, $timeout, $ionicPlatform, $ionicLoading, $ionicSideMenuDelegate, $ionicTabsDelegate,$ionicScrollDelegate,$ionicSlideBoxDelegate,$http) {
 
-	initIonicVars($scope,$ionicLoading,$ionicSideMenuDelegate);
+	initIonicVars($scope,$ionicLoading,$ionicSideMenuDelegate,$http);
 	//Start of app
     $timeout(function() {
 
@@ -11,7 +49,52 @@ angular.module('starter.controllers', [])
     }, 2000);
 
     $scope.selectTabWithIndex = function(index) {
-        $ionicTabsDelegate.select(index);
+      if(index == 1 && partnerid == undefined){
+        $scope.partnerReq = {};
+        var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/";
+        url = url + myid;
+
+        $http.get(url).success(function(response, status, headers, config){
+          if(response.Count != 0){
+
+            var partnerReq = response.Items[0].partner_request_id;
+            if(partnerReq == undefined || partnerReq.S == "null"){
+              $scope.partnerReq.isPartnerRequest = false;
+            }else{
+              $scope.partnerReq.isPartnerRequest = true;
+              var senderReceiver = partnerReq.S.split(" ")[0];
+              var partnerReqId = partnerReq.S.split(" ")[1];
+              if(senderReceiver == "sender")
+              {
+                $scope.partnerReq.isPartnerRequestSender = true;
+              }
+              if(senderReceiver == "receiver"){
+                $scope.partnerReq.isPartnerRequestReceiver = true;
+              }
+              var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/";
+              url = url +partnerReqId;
+
+              $http.get(url).success(function(response, status, headers, config){
+                if(response.Count != 0){
+                  $scope.partnerReq.user_id = partnerReqId;
+                  $scope.partnerReq.user_name = response.Items[0].display_name.S;
+                  $scope.partnerReq.user_profile_picture = response.Items[0].profile_picture.S;
+                }else{
+                  console.log("User not exists");
+                }
+            }).error(function(err, status, headers, config){
+                 console.log("Error occured while login.")
+            });
+            }
+
+          }else{
+              console.log("User not exists");
+          }
+      }).error(function(err, status, headers, config){
+           console.log("Error occured while login.")
+      });
+      }
+      $ionicTabsDelegate.select(index);
     }
 
     $scope.initApp = function() {
@@ -29,22 +112,31 @@ angular.module('starter.controllers', [])
             $scope.tog = 1;
             $scope.songs = [];
             $scope.partnersongs = [];
-            $scope.selectedSong = 'Choose song';
+            $scope.selectedSong = 'Please select song';
             $scope.selectedSongPath = ' ';
             $scope.duplicateID = false;
 
-			$scope.isBuffering = false;
+            $scope.chat = {};
+            $scope.chat.data = {};
+            $scope.chat.myId = $scope.you;
+            $scope.chat.messages = [];
+
+			      $scope.isBuffering = false;
+            $scope.partnerReq = {};
+            $scope.partnerReq.search = {};
 
             // alert();
-            if (localStorage['myid'] && localStorage['partnerid']) {
+            if (localStorage['myid']) {
                 myid = localStorage['myid'];
-                partnerid = localStorage['partnerid'];
-                $scope.you = myid;
-                $scope.partner = partnerid;
-                $scope.loginData.youname = myid;
-                $scope.loginData.partnername = partnerid;
+                chatmessages = localStorage['chatmessages'];
+                console.log("chatmessages = "+JSON.stringify(chatmessages));
+
+                if(chatmessages != undefined && chatmessages != null){
+                  $scope.chat.messages = JSON.parse(chatmessages);
+                }
+                $scope.loginData.user_id = myid;
                 $scope.doLogin();
-                $scope.loadSongs();
+
             } else {
                 $scope.login();
             }
@@ -60,6 +152,8 @@ angular.module('starter.controllers', [])
         localStorage.removeItem('partnerid');
         localStorage.removeItem('songs');
         localStorage.removeItem('partnersongs');
+        localStorage.removeItem('chatmessages');
+
 
         $scope.you = "";
         $scope.partner = "";
@@ -76,7 +170,7 @@ angular.module('starter.controllers', [])
         $ionicLoading.show({
             template: 'Loading... ' + song.name
         });
-        sendToPeer({
+        $scope.sendToPeer({
             action: 'play-song',
             song: song
         });
@@ -158,7 +252,7 @@ angular.module('starter.controllers', [])
         $ionicLoading.show({
             template: 'Loading...' + song.name
         });
-        sendToPeer({
+        $scope.sendToPeer({
             action: 'new-song',
             song: song
         });
@@ -203,13 +297,19 @@ angular.module('starter.controllers', [])
                     var index = 0;
                     var i;
                     var statusStr = "";
-
+                    var endOfRecursive = "";
                     function addFileEntry(entry) {
+                      $ionicLoading.show({
+                          template: 'Loading songs from device...'
+                      });
                         var dirReader = entry.createReader();
                         dirReader.readEntries(
                             function(entries) {
                                 var fileStr = "";
                                 var i;
+                                if(endOfRecursive == ""){
+                                  endOfRecursive = entries[entries.length-1].fullPath;
+                                }
                                 for (i = 0; i < entries.length; i++) {
                                     if (entries[i].isDirectory === true) {
                                         // Recursive -- call back into this subdirectory
@@ -229,11 +329,11 @@ angular.module('starter.controllers', [])
                                             localStorage['songs'] = JSON.stringify($scope.songs);
                                             console.log($scope.songs.length + ' ' + entries[i].name);
                                             //console.log(JSON.stringify(file));
-
                                             //	   });
 
                                         }
                                     }
+                                    $ionicLoading.hide();
                                 }
 
                             },
@@ -244,12 +344,7 @@ angular.module('starter.controllers', [])
                     };
 
                     function addFileEntryWrapper(entry) {
-                        $ionicLoading.show({
-                            template: 'Loading...'
-                        });
                         addFileEntry(entry);
-                        $ionicLoading.hide();
-                        $scope.$digest();
 
                     };
 
@@ -274,7 +369,7 @@ angular.module('starter.controllers', [])
 
                 return;
             } else {
-                sendToPeer({
+                $scope.sendToPeer({
                     action: 'get-songlist'
                 });
             }
@@ -312,18 +407,266 @@ angular.module('starter.controllers', [])
     $scope.doLogin = function() {
 
         console.log('Doing login', $scope.loginData);
-        console.log('songs', $scope.songs);
-        myid = $scope.loginData.youname;
-        partnerid = $scope.loginData.partnername;
-        localStorage['myid'] = myid;
-        localStorage['partnerid'] = partnerid;
 
+        var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/";
+        url = url +$scope.loginData.user_id;
 
+        $http.get(url).success(function(response, status, headers, config){
+          if(response.Count != 0){
+            myid = response.Items[0].user_id.S;
+            my_name = response.Items[0].display_name.S;
+            my_profile_picture = response.Items[0].profile_picture.S;
+            localStorage['myid'] = myid;
+            localStorage['my_name'] = my_name;
+            localStorage['my_profile_picture'] = my_profile_picture;
+            $scope.you = myid;
+            $scope.my_name = my_name;
+            $scope.my_profile_picture = my_profile_picture;
 
-        // Simulate a login delay. Remove this and replace with your login
-        // code if using a login system
-        createConnection();
-
-
+            if(response.Items[0].partner_id != undefined){
+                partnerid = response.Items[0].partner_id.S;
+                localStorage['partnerid'] = partnerid;
+                  $scope.partner = partnerid;
+                var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/";
+                url = url + partnerid;
+                $http.get(url).success(function(response, status, headers, config){
+                  if(response.Count != 0){
+                    partner_name = response.Items[0].display_name.S;
+                    partner_profile_picture = response.Items[0].profile_picture.S;
+                    localStorage['partner_name'] = partner_name;
+                    localStorage['partner_profile_picture'] = partner_profile_picture;
+                    $scope.partner_name = partner_name;
+                    $scope.partner_profile_picture = partner_profile_picture;
+                  }else{
+                    console.log('User not exists');
+                  }
+              }).error(function(err, status, headers, config){
+                   console.log("Error occured while login.");
+              });
+          }else{
+            $scope.partner_name = 'partner';
+          }
+          createConnection();
+          $scope.closeLogin();
+          $scope.loadSongs();
+          }else{
+            console.log('User not exists');
+          }
+      }).error(function(err, status, headers, config){
+           console.log("Error occured while login.");
+      });
     };
+
+		//Chat code
+    $scope.sendChatMessage = function () {
+        var d = new Date();
+        d = d.toLocaleTimeString().replace(/:\d+ /, ' ');
+        $scope.chat.messages.push({
+            userId: $scope.you,
+            text: $scope.chat.data.message,
+            time: d
+        });
+        localStorage['chatmessages'] = JSON.stringify($scope.chat.messages);
+        $ionicScrollDelegate.scrollBottom(true);
+        PeerStream.chat($scope.chat.data.message);
+        delete $scope.chat.data.message;
+    };
+    $scope.appendPartnerChatMessage = function (msg) {
+        var d = new Date();
+        d = d.toLocaleTimeString().replace(/:\d+ /, ' ');
+        $scope.chat.messages.push({
+            userId: $scope.partner,
+            text: msg,
+            time: d
+        });
+            localStorage['chatmessages'] = JSON.stringify($scope.chat.messages);
+          $scope.$digest();
+        $ionicScrollDelegate.scrollBottom(true);
+    };
+
+    //login screens
+    $scope.disableLoginSwipe = function() {
+      $ionicSlideBoxDelegate.enableSlide(false);
+    };
+    $scope.loginSlideTo = function(index) {
+      $ionicSlideBoxDelegate.slide(index);
+    };
+    $scope.sendVerificationCode = function(){
+      $scope.loginData.code = Math.floor(1000 + Math.random() * 9000);
+      var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/sms?";
+      url = url +"PhoneNumber="+$scope.loginData.user_id;
+      url = url +"&Message="+$scope.loginData.code +" is your verification code for Liveplay";
+
+      $http.post(url,{}).success(function(response, status, headers, config){
+        if(response.Error == undefined){
+          $scope.loginData.wrongMobileNumber = false;
+          $ionicSlideBoxDelegate.slide(1);
+        }else{
+            $scope.loginData.wrongMobileNumber = true;
+        }
+
+    }).error(function(err, status, headers, config){
+         console.log("Error occured while sending verification code.")
+    });
+
+    }
+    $scope.verifyCode = function(){
+      if($scope.loginData.code == $scope.loginData.entered_code){
+//  if("123" == $scope.loginData.entered_code){
+
+        $scope.loginData.wrongcode = false;
+        var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/";
+        url = url +$scope.loginData.user_id;
+
+        $http.get(url).success(function(response, status, headers, config){
+          if(response.Count == 0){
+            //new user signup
+            $ionicSlideBoxDelegate.slide(2);
+
+          }else{
+              $scope.doLogin();
+          }
+      }).error(function(err, status, headers, config){
+           console.log("Error occured while login.")
+      });
+      }else{
+        $scope.loginData.wrongcode = true;
+      }
+
+    }
+    $scope.signUp = function(){
+        var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/signup";
+        var payload = {
+          "user_id": $scope.loginData.user_id,
+          "display_name": $scope.loginData.user_name,
+          "gender": "null",
+          "profile_picture": "null",
+          "mobile": $scope.loginData.user_id,
+          "email": "null"
+        };
+
+        $http.post(url,payload).success(function(response, status, headers, config){
+          if(JSON.stringify(response) === JSON.stringify({})){
+            $scope.doLogin();
+          }else{
+            console.log("Error occured while signup.");
+          }
+      }).error(function(err, status, headers, config){
+           console.log("Error occured while signup.");
+      });
+
+
+    }
+
+    $scope.searchUser = function(){
+        var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/";
+        url = url + $scope.partnerReq.search.user_id;
+        $scope.partnerReq.searchRes = undefined;
+
+        $http.get(url).success(function(response, status, headers, config){
+          if(response.Count != 0){
+            $scope.partnerReq.searchRes = {};
+            $scope.partnerReq.searchRes.user_id = response.Items[0].user_id.S;
+            $scope.partnerReq.searchRes.user_name = response.Items[0].display_name.S;
+            $scope.partnerReq.searchRes.user_profile_picture = response.Items[0].profile_picture.S;
+          }else{
+            $scope.partnerReq.searchRes = 'no-result';
+          }
+      }).error(function(err, status, headers, config){
+           console.log("Error occured while login.")
+      });
+  }
+
+  $scope.addPartner = function(){
+    var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/update_partner_request_id";
+    var payload = {
+      "user_id": myid,
+      "partner_request_id": "sender "+$scope.partnerReq.searchRes.user_id
+    };
+    $http.put(url,payload).success(function(response, status, headers, config){
+        var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/update_partner_request_id";
+        var payload = {
+          "user_id": $scope.partnerReq.searchRes.user_id,
+          "partner_request_id": "receiver "+myid
+        };
+        $http.put(url,payload).success(function(response, status, headers, config){
+          $scope.selectTabWithIndex(1);
+        }).error(function(err, status, headers, config){
+               console.log("Error occured while updating peerjs_id.");
+      });
+    }).error(function(err, status, headers, config){
+           console.log("Error occured while updating peerjs_id.");
+  });
+
+}
+$scope.acceptPartnerRequest = function(){
+  var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/update_partner_id";
+  var payload = {
+    "user_id": myid,
+    "partner_id": $scope.partnerReq.user_id
+  };
+  $http.put(url,payload).success(function(response, status, headers, config){
+      var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/update_partner_request_id";
+      var payload = {
+        "user_id": myid,
+        "partner_request_id": "null"
+      };
+      $http.put(url,payload).success(function(response, status, headers, config){
+        var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/update_partner_id";
+        var payload = {
+          "user_id": $scope.partnerReq.user_id,
+          "partner_id": myid
+        };
+        $http.put(url,payload).success(function(response, status, headers, config){
+            var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/update_partner_request_id";
+            var payload = {
+              "user_id": $scope.partnerReq.user_id,
+              "partner_request_id": "null"
+            };
+            $http.put(url,payload).success(function(response, status, headers, config){
+              $scope.doLogin();
+            }).error(function(err, status, headers, config){
+                   console.log("Error occured while updating peerjs_id.");
+          });
+        }).error(function(err, status, headers, config){
+               console.log("Error occured while updating peerjs_id.");
+      });
+
+      }).error(function(err, status, headers, config){
+             console.log("Error occured while updating peerjs_id.");
+    });
+  }).error(function(err, status, headers, config){
+         console.log("Error occured while updating peerjs_id.");
+});
+
+}
+$scope.rejectPartnerRequest = function(){
+  var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/update_partner_request_id";
+  var payload = {
+    "user_id": myid,
+    "partner_request_id": "null"
+  };
+  $http.put(url,payload).success(function(response, status, headers, config){
+    var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/update_partner_request_id";
+    var payload = {
+      "user_id": $scope.partnerReq.user_id,
+      "partner_request_id": "null"
+    };
+    $http.put(url,payload).success(function(response, status, headers, config){
+      $scope.doLogin();
+    }).error(function(err, status, headers, config){
+           console.log("Error occured while updating peerjs_id.");
+  });
+  }).error(function(err, status, headers, config){
+         console.log("Error occured while updating peerjs_id.");
+});
+
+}
+$scope.playSong = function(){
+  PeerStream.play();
+}
+$scope.pauseSong = function(){
+  PeerStream.pause();
+}
+
 })

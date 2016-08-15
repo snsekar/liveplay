@@ -1,86 +1,140 @@
-<ion-view view-title="LivePlay">
+<ion-view cache-view="false" view-title="LivePlay">
 	  <div class="bar bar-subheader bar-positive no-bottom-border">
 		<div class="button-bar ">
-		   <!--<a class="button button-icon icon ion-gear-b col col-10"></a>-->			  
-		   <a class="button button-clear "  
+		   <!--<a class="button button-icon icon ion-gear-b col col-10"></a>-->
+		   <a class="button button-clear "
 			  ng-click = "showHideYou = true; showHidePartner = false; showHideChat = false; tog = 1; selectTabWithIndex(0)" ng-class="{ 'bold' : tog == 1}" >
-			<i class="icon ion-record small-icon offline" ng-class=" {'online' : youOnline == true}" ></i> {{you}} ({{youCount}})
+			<i class="icon ion-record small-icon offline" ng-class=" {'online' : youOnline == true}" ></i> {{my_name}}
 		   </a>
-		   <a class="button button-clear" 
+		   <a class="button button-clear"
 			  ng-click = "showHideYou = false; showHidePartner = true; showHideChat = false; tog = 2; selectTabWithIndex(1)" ng-class="{ 'bold' : tog == 2}">
-			<i class="icon ion-record small-icon offline" ng-class=" {'online' : partnerOnline == true}" ></i> {{partner}} ({{partnerCount}})
+			<i class="icon ion-record small-icon offline" ng-class=" {'online' : partnerOnline == true}" ></i> {{partner_name}}
 		   </a>
-		   <!--
-		   <a class="button button-icon icon ion-ios-chatboxes" style = "color : #9ec0fa" 
-			  ng-click = "showHideYou = false; showHidePartner = false; showHideChat = true; tog = 3" ng-class="{ 'bluecolor' : tog == 3}">
-		   </a> 
-		   -->
+		   <a class="button button-clear"
+			  ng-click = "showHideYou = false; showHidePartner = false; showHideChat = true; tog = 3;selectTabWithIndex(2)" ng-class="{ 'bold' : tog == 3}">
+				<i class="icon ion-ios-chatboxes small-icon "></i>&nbsp;Chats
+			 </a>
 		</div>
 	 </div>
 	<ion-tabs class="tabs-top tabs-background-positive tabs-color-light">
-		 
-		 <ion-tab title="{{you}} ({{youCount}})">	
-			<ion-view>
-			<ion-content overflow-scroll="true">
-							<div>
-					<input type="file" id="selectedFile" style="display: none;" accept="audio/*" onchange="handleFileSelect(this)"/>
-					<input type="button" value="Choose song" onclick="document.getElementById('selectedFile').click();" style="height: 50px;width:80%;max-width: 250px;"/>
-					<br/><br/>
-					<audio controls id="audio_player" style="width:80%;max-width: 250px;"/>
-				</div>	
-			 <ion-list>
-				<ion-item class="item item-icon-left" href="#" ng-click = "songSelected(song);" ng-repeat = "song in songs">		   
-			   <i class="icon ion-music-note"></i>
-			   {{song.name}}			
-			   </ion-item>
-			   <ion-item></ion-item>
-			   <ion-item></ion-item>
-				<ion-item></ion-item>
-			   </ion-list>         
 
-			 </ion-content>
-			</ion-view>
-		 </ion-tab>
-		 
-		 <ion-tab title="{{partner}} ({{partnerCount}})">
-			<ion-view>
-			 <ion-content overflow-scroll="true">
+		 <ion-tab>
+			<ion-view cache-view="false">
+			<ion-content overflow-scroll="true">
 			 <ion-list>
-				<ion-item class="item item-icon-left" href="#" ng-click = "partnerSongSelected(song);" ng-repeat = "song in partnersongs">		   
-				<i class="icon ion-music-note"></i>
-				{{song.name}}			   
+				<ion-item class="item item-icon-left" href="#" ng-click = "songSelected(song);" ng-repeat = "song in songs">
+			   <i class="icon ion-music-note"></i>
+			   {{song.name}}
 			   </ion-item>
 			   	<ion-item></ion-item>
-			   <ion-item></ion-item>
-			 <ion-item></ion-item>
-			   </ion-list>   			
+			   	<ion-item></ion-item>
+					<ion-item></ion-item>
+			   </ion-list>
+				 <div>
+					 <input type="file" id="selectedFile" style="display: none;" accept="audio/*" onchange="handleFileSelect(this)"/>
+					 <input type="button" value="Choose song" onclick="document.getElementById('selectedFile').click();" style="height: 50px;width:80%;max-width: 250px;"/>
+					 <br/><br/>
+					 <audio controls id="audio_player" style="width:80%;max-width: 250px;"/>
+				 </div>
 			 </ion-content>
 			</ion-view>
 		 </ion-tab>
-		 
 
-		 
+		 <ion-tab>
+			<ion-view cache-view="false">
+			 <ion-content overflow-scroll="true">
+			 <ion-list ng-if="partner != undefined">
+				<ion-item class="item item-icon-left" href="#" ng-click = "partnerSongSelected(song);" ng-repeat = "song in partnersongs">
+				<i class="icon ion-music-note"></i>
+				{{song.name}}
+			   </ion-item>
+			   	<ion-item></ion-item>
+			   	<ion-item></ion-item>
+			 		<ion-item></ion-item>
+			   </ion-list>
+				 <div ng-if="partner == undefined && partnerReq.isPartnerRequest == false">
+					 	<span>Enter partner mobile : </span>
+					 	<label class="item-input-wrapper">
+							<input class="item-input-wrapper" type="text" ng-model="partnerReq.search.user_id" ng-init="+91">
+					 	</label>
+						<span>Please enter mobile number with country code. For example: +919876543210</span>
+						<button class="button button-block button-positive" ng-click="searchUser()">Search</button>
+						<div ng-if="partnerReq.searchRes == 'no-result'">
+							<span class="input-label">Sorry!!! No user found</span>
+						</div>
+						<div ng-if="partnerReq.searchRes != undefined && partnerReq.searchRes != 'no-result'">
+							<span class="input-label"><b>{{partnerReq.searchRes.user_name}}</b>({{partnerReq.searchRes.user_id}})</span>
+							<button class="button button-block button-positive" ng-click="addPartner()">Add as partner</button>
+						</div>
+
+
+				 </div>
+				 <div ng-if="partner == undefined && partnerReq.isPartnerRequest == true && partnerReq.isPartnerRequestSender == true">
+						<span>Request sent successfully to <b>{{partnerReq.user_name}}</b>. Please wait until {{partnerReq.user_name}} accepts your request.</span>
+						<button class="button button-block button-default" ng-click="rejectPartnerRequest()">Cancel request</button>
+				 </div>
+				 <div ng-if="partner == undefined && partnerReq.isPartnerRequest == true && partnerReq.isPartnerRequestReceiver == true">
+						<span><b>{{partnerReq.user_name}}</b> sent you partner request. Do you want to accept request?</span>
+						<button class="button button-block button-balanced" ng-click="acceptPartnerRequest()">Yes</button>
+						<button class="button button-block button-assertive" ng-click="rejectPartnerRequest()">No</button>
+				 </div>
+			 </ion-content>
+			</ion-view>
+		 </ion-tab>
+
+		 <ion-tab>
+			<ion-view cache-view="false">
+				<ion-pane class="messaging-view">
+		    <ion-content class="content-stable">
+
+		      <div ng-repeat="message in chat.messages track by $index"
+		           ng-class="{other: message.userId != you}"
+		           class="messages">
+
+		        <div class="message">
+		          <span>{{ message.text }}</span><div>{{message.time}}</div>
+		        </div>
+					</div>
+
+		    </ion-content>
+
+		    <ion-footer-bar keyboard-attach class="bar-subfooter bar-stable item-input-inset">
+		      <label class="item-input-wrapper">
+		        <input type="text" placeholder="Type your message" on-return="sendChatMessage();" ng-model="chat.data.message" />
+		      </label>
+		      <button class="button button-clear" ng-click="sendChatMessage()">
+		        Send
+		      </button>
+		    </ion-footer-bar>
+		  </ion-pane>
+			</ion-view>
+		 </ion-tab>
+
+
+
 		</ion-tabs>
-		  
-         <div class="bar bar-footer ">		
-           <h2 class="title positive" ><ion-spinner icon="android"  ng-show = "isBuffering" ></ion-spinner>&nbsp;{{selectedSong}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="button button-icon  icon ion-android-call" ng-click = "makeCall();"></a></i></h2>		
-         </div> 
-		<!-- 
-         <div class="bar bar-subfooter "> 
-            <h2 class="title positive">{{selectedSong}}</h2>			
+
+         <div class="bar bar-footer ">
+           <!-- <h2 class="title positive" ><ion-spinner icon="android"  ng-show = "isBuffering" ></ion-spinner>&nbsp;{{selectedSong}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="button button-icon  icon ion-android-call" ng-click = "makeCall();"></a></i></h2> -->
+					 <h2 class="title positive" >&nbsp;&nbsp;{{selectedSong}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a ng-if="!playpause && selectedSong !='Please select song'" class="button button-icon  icon ion-play" ng-click = "playSong();"></a><a ng-if="playpause && selectedSong !='Please select song'" class="button button-icon  icon ion-pause" ng-click = "pauseSong();"></a></i></h2>
+
          </div>
-		 
-	
+		<!--
+         <div class="bar bar-subfooter ">
+            <h2 class="title positive">{{selectedSong}}</h2>
+         </div>
+
+
          <div class="bar bar-footer">
             <div class="button-bar ">
-		
+
                <a class="button button-icon bluecolor icon ion-music-note" ng-click = "loadSongs();"></a>
                <a class="button button-icon bluecolor icon ion-ios-skipbackward" ng-click = "sendToPeer('Hellllloooo....')"></a>
                <a class="button button-icon bluecolor icon ion-play" 		ng-click = "initApp();"></a>
                <a class="button button-icon bluecolor icon ion-ios-skipforward" ></a>
                <a class="button button-icon bluecolor icon ion-ios-telephone"></a>
-			
-			   <a class="button button-icon  icon ion-android-refresh" ng-click = "loadSongs();"></a>			   
+
+			   <a class="button button-icon  icon ion-android-refresh" ng-click = "loadSongs();"></a>
                <audio style = "width : 70% ; display : none;" controls id="audio_player"/>
 			 </div>
          </div>

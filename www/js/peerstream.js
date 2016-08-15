@@ -23,6 +23,7 @@ PeerStream.onCallDisconnectedHandler = "";
 PeerStream.onPeerConnectedHandler = "";
 PeerStream.onPeerDisconnectedHandler = "";
 PeerStream.onChatHandler = "";
+PeerStream.onSignalHandler = "";
 PeerStream.onErrorHandler = "";
 PeerStream._onData = "";
 
@@ -41,6 +42,9 @@ PeerStream.initPeerConnection = function () {
     }
     if(data.type == '_data'){
       PeerStream._onData(data);
+    }
+    if(data.type == 'signal'){
+      PeerStream.onSignalHandler.call(this,data.payload);
     }
   });
   PeerStream.peerConnection.on('close', function() {
@@ -63,7 +67,7 @@ PeerStream.connect = function(selfId, peerId, mediaElementId) {
       key: 'iulf39j4p5w2ke29'
   });
  PeerStream.peer.on('open', function(id) {
-    PeerStream.onConnectedHandler.call();
+    PeerStream.onConnectedHandler.call(this,id);
     PeerStream.peerConnection =PeerStream.peer.connect(peerId, {
         reliable: true
     });
@@ -125,6 +129,9 @@ PeerStream.onPeerDisconnected = function(eventHandler) {
 PeerStream.onChat = function(eventHandler) {
   PeerStream.onChatHandler = eventHandler;
 };
+PeerStream.onSignal = function(eventHandler) {
+  PeerStream.onSignalHandler = eventHandler;
+};
 PeerStream.onCallConnected = function(eventHandler) {
   PeerStream.onCallConnectedHandler = eventHandler;
 };
@@ -171,9 +178,11 @@ PeerStream.attachSource = function(mediaType, mediaSourceObject) {
 };
 
 PeerStream.play = function() {
-  PeerStream._audioElement.play();
-  PeerStream._sendData("play","");
-  PeerStream.onPlayHandler.call();
+  //if(PeerStream._audioElement.played.length == 0){
+    PeerStream._audioElement.play();
+    PeerStream._sendData("play","");
+    PeerStream.onPlayHandler.call();
+//  }
 };
 
 PeerStream.pause = function() {
@@ -225,8 +234,13 @@ PeerStream.chat = function(message) {
 
 
 
-PeerStream.signal = function(message) {
-  //connect to peer
+PeerStream.signal = function(payload) {
+  var data = {
+    //id : 'some unique id for PeerStream message',
+    type : 'signal',
+    payload : payload
+  };
+  PeerStream.peerConnection.send(data);
 };
 
 PeerStream.error = function(message) {
@@ -300,11 +314,13 @@ PeerStream._fetchNextFileChunk = function () {
           setTimeout(function() {
             PeerStream._mediaSourceBuffer = PeerStream._mediaSource.addSourceBuffer('audio/mpeg');
             PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(evt.target.result));
+            PeerStream.play();
             console.log('media-chunk-appended');
             PeerStream._sendData("media-chunk", evt.target.result);
           }, 1500);
         }else{
           PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(evt.target.result));
+          PeerStream.play();
           console.log('media-chunk-appended');
           PeerStream._sendData("media-chunk", evt.target.result);
         }

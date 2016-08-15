@@ -1,0 +1,248 @@
+
+
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="UTF-8">
+
+
+    <title>CodePen - Ionic Chat example</title>
+
+
+
+
+        <style>
+      .scroll {
+  padding: 10px 0 50px !important;
+}
+
+.messages {
+  display: -webkit-box !important;
+  display: -moz-box !important;
+  display: -ms-flexbox !important;
+  display: -webkit-flex !important;
+  display: flex !important;
+  -webkit-align-content: center !important;
+  -ms-flex-line-pack: center !important;
+  align-content: center !important;
+  -webkit-box-align: center !important;
+  -moz-box-align: center !important;
+  -webkit-align-items: center !important;
+  -ms-flex-align: center !important;
+  align-items: center !important;
+  margin-bottom: 20px !important;
+}
+.messages .message {
+  -webkit-box-flex: 1 !important;
+  -moz-box-flex: 1 !important;
+  -webkit-flex: 1 1 auto !important;
+  -ms-flex: 1 1 auto !important;
+  flex: 1 1 auto !important;
+  padding: 10px !important;
+  -webkit-transition: all 250ms ease-in-out !important;
+  transition: all 250ms ease-in-out !important;
+  overflow: hidden !important;
+  text-align: left !important;
+  -webkit-transform: translate3d(0, 0, 0) !important;
+  -moz-transform: translate3d(0, 0, 0) !important;
+  transform: translate3d(0, 0, 0) !important;
+}
+
+.time {
+  -webkit-box-flex: 0 !important;
+  -moz-box-flex: 0 !important;
+  -webkit-flex: 0 1 auto !important;
+  -ms-flex: 0 1 auto !important;
+  flex: 0 1 auto !important;
+  -webkit-align-self: auto !important;
+  -ms-flex-item-align: auto !important;
+  align-self: auto !important;
+  width: 120px !important;
+  text-align: center !important;
+  padding: 0 0 0 0 !important;
+  -webkit-transition: all 250ms ease-in-out !important;
+  transition: all 250ms ease-in-out !important;
+  -webkit-transform: translate3d(10px, 0, 0) !important;
+  -moz-transform: translate3d(10px, 0, 0) !important;
+  transform: translate3d(10px, 0, 0) !important;
+}
+.time.slide-right {
+  -webkit-transform: translate3d(130px, 0, 0) !important;
+  -moz-transform: translate3d(130px, 0, 0) !important;
+  transform: translate3d(130px, 0, 0) !important;
+}
+
+.messages.other .message {
+  -webkit-transform: translate3d(0, 0, 0) !important;
+  -moz-transform: translate3d(0, 0, 0) !important;
+  transform: translate3d(0, 0, 0) !important;
+  text-align: right !important;
+}
+.messages.other .message.slide-right {
+  -webkit-transform: translate3d(120px, 0, 0) !important;
+  -moz-transform: translate3d(120px, 0, 0) !important;
+  transform: translate3d(120px, 0, 0) !important;
+}
+.messages.other span {
+  color: black !important;
+  background-color: #C7C7CC !important;
+}
+
+span {
+  background: #007AFF !important;
+  display: inline-block !important;
+  color: white !important;
+  padding: 10px !important;
+  border-radius: 10px !important;
+  text-align: left !important;
+  max-width: 240px !important;
+}
+
+    </style>
+
+    <script>
+  window.console = window.console || function(t) {};
+</script>
+
+
+
+  </head>
+
+  <body translate="no" >
+
+    <html ng-app="ionicApp">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+
+    <title>Ionic Template</title>
+
+    <link href="//code.ionicframework.com/nightly/css/ionic.css" rel="stylesheet">
+    <script src="//code.ionicframework.com/nightly/js/ionic.bundle.js"></script>
+  </head>
+
+  <body ng-controller="Messages">
+    <ion-pane "class="messaging-view">
+    <ion-header-bar class="bar-calm">
+      <h1 class="title">Ioinc Chat</h1>
+    </ion-header-bar>
+
+    <ion-content class="content-stable"
+                 on-swipe-left="hideTime = false"
+                 on-swipe-right="hideTime = true">
+
+      <div ng-repeat="message in messages"
+           ng-class="{other: message.userId != myId}"
+           class="messages">
+
+        <div class="message" ng-class="{'slide-right': hideTime, '': !hideTime}">
+          <span>{{ message.text }}</span>
+        </div>
+
+        <div class="time" ng-class="{'slide-right': hideTime, '': !hideTime}">{{message.time}}</div>
+
+
+      </div>
+
+    </ion-content>
+
+    <ion-footer-bar keyboard-attach class="bar-stable item-input-inset">
+      <label class="item-input-wrapper">
+        <input type="text" placeholder="Type your message" on-return="sendMessage(); closeKeyboard()" ng-model="data.message" on-focus="inputUp()" on-blur="inputDown()" />
+      </label>
+      <button class="button button-clear" ng-click="sendMessage()">
+        Send
+      </button>
+    </ion-footer-bar>
+  </ion-pane>
+  </body>
+
+</html>
+      <script src="//assets.codepen.io/assets/common/stopExecutionOnTimeout-53beeb1a007ec32040abaf4c9385ebfc.js"></script>
+
+
+        <script>
+      angular.module('ionicApp', ['ionic']).directive('input', function ($timeout) {
+    return {
+        restrict: 'E',
+        scope: {
+            'returnClose': '=',
+            'onReturn': '&',
+            'onFocus': '&',
+            'onBlur': '&'
+        },
+        link: function (scope, element, attr) {
+            element.bind('focus', function (e) {
+                if (scope.onFocus) {
+                    $timeout(function () {
+                        scope.onFocus();
+                    });
+                }
+            });
+            element.bind('blur', function (e) {
+                if (scope.onBlur) {
+                    $timeout(function () {
+                        scope.onBlur();
+                    });
+                }
+            });
+            element.bind('keydown', function (e) {
+                if (e.which == 13) {
+                    if (scope.returnClose)
+                        element[0].blur();
+                    if (scope.onReturn) {
+                        $timeout(function () {
+                            scope.onReturn();
+                        });
+                    }
+                }
+            });
+        }
+    };
+}).controller('Messages', function ($scope, $timeout, $ionicScrollDelegate) {
+    $scope.hideTime = true;
+    var alternate, isIOS = ionic.Platform.isWebView() && ionic.Platform.isIOS();
+    $scope.sendMessage = function () {
+        alternate = !alternate;
+        var d = new Date();
+        d = d.toLocaleTimeString().replace(/:\d+ /, ' ');
+        $scope.messages.push({
+            userId: alternate ? '12345' : '54321',
+            text: $scope.data.message,
+            time: d
+        });
+        delete $scope.data.message;
+        $ionicScrollDelegate.scrollBottom(true);
+    };
+    $scope.inputUp = function () {
+        if (isIOS)
+            $scope.data.keyboardHeight = 216;
+        $timeout(function () {
+            $ionicScrollDelegate.scrollBottom(true);
+        }, 300);
+    };
+    $scope.inputDown = function () {
+        if (isIOS)
+            $scope.data.keyboardHeight = 0;
+        $ionicScrollDelegate.resize();
+    };
+    $scope.closeKeyboard = function () {
+    };
+    $scope.data = {};
+    $scope.myId = '12345';
+    $scope.messages = [];
+});
+      //# sourceURL=pen.js
+    </script>
+
+
+    <script>
+  if (document.location.search.match(/type=embed/gi)) {
+    window.parent.postMessage("resize", "*");
+  }
+</script>
+
+
+  </body>
+</html>

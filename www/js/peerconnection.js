@@ -31,7 +31,7 @@ function createConnection() {
       }else{
         console.log("User not exists");
       }
-      PeerStream.connect(randomId, partner_peerjs_id, "audio_player");
+      PeerStream.connect(randomId, partner_peerjs_id, "audio_player","audio_call");
 
   }).error(function(err, status, headers, config){
        console.log("Error occured while login.")
@@ -149,4 +149,14 @@ PeerStream.onPeerPause(function(){
 });
 PeerStream.onChat(function(chatMessage){
  $scope.appendPartnerChatMessage(chatMessage);
+});
+PeerStream.onCallConnected(function(){
+  $scope.isCallInprogress=true;
+  $scope.$digest();
+
+});
+PeerStream.onCallDisconnected(function(){
+  $scope.isCallInprogress=false;
+  $scope.$digest();
+
 });

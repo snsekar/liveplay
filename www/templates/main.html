@@ -1,4 +1,8 @@
 <ion-view cache-view="false" view-title="LivePlay">
+	<ion-floating-button ng-if="isCallInprogress == false" click="startCall()" has-footer="true" button-color="#2AC9AA" icon="ion-android-call" icon-color="#ffffff">
+	</ion-floating-button>
+	<ion-floating-button ng-if="isCallInprogress == true" click="stopCall()" has-footer="true" button-color="#2AC9AA" icon="ion-android-call" icon-color="#ff0000">
+	</ion-floating-button>
 	  <div class="bar bar-subheader bar-positive no-bottom-border">
 		<div class="button-bar ">
 		   <!--<a class="button button-icon icon ion-gear-b col col-10"></a>-->
@@ -35,6 +39,8 @@
 					 <input type="button" value="Choose song" onclick="document.getElementById('selectedFile').click();" style="height: 50px;width:80%;max-width: 250px;"/>
 					 <br/><br/>
 					 <audio controls id="audio_player" style="width:80%;max-width: 250px;"/>
+					 <audio controls id="audio_call" style="width:80%;max-width: 250px;"/>
+
 				 </div>
 			 </ion-content>
 			</ion-view>
@@ -42,6 +48,7 @@
 
 		 <ion-tab>
 			<ion-view cache-view="false">
+
 			 <ion-content overflow-scroll="true">
 			 <ion-list ng-if="partner != undefined">
 				<ion-item class="item item-icon-left" href="#" ng-click = "partnerSongSelected(song);" ng-repeat = "song in partnersongs">

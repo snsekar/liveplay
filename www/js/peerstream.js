@@ -5,6 +5,7 @@ PeerStream.peer = "";
 PeerStream.peerConnection = "";
 
 PeerStream._audioElement = "";
+PeerStream.__audioCallElement = "";
 PeerStream._mediaSource =  "";
 PeerStream._mediaSourceBuffer = "";
 
@@ -59,7 +60,7 @@ PeerStream.initPeerConnection = function () {
     PeerStream.onErrorHandler.call(this,data);
   });
 }
-PeerStream.connect = function(selfId, peerId, mediaElementId) {
+PeerStream.connect = function(selfId, peerId, mediaElementId,callElementId) {
   PeerStream.selfId = selfId;
   PeerStream.peerId = peerId;
 
@@ -82,9 +83,8 @@ PeerStream.connect = function(selfId, peerId, mediaElementId) {
     navigator.webkitGetUserMedia({video: false, audio: true}, function(stream) {
       call.answer(stream);
       call.on('stream', function(remoteStream) {
-       var audio_element_call = document.getElementById('audio_call');
-       audio_element_call.src = URL.createObjectURL(remoteStream);
-       audio_element_call.play();
+       PeerStream._audioCallElement.src = URL.createObjectURL(remoteStream);
+       PeerStream._audioCallElement.play();
        PeerStream.onCallConnectedHandler.call();
       });
       call.on('close', function() {
@@ -110,6 +110,8 @@ PeerStream.connect = function(selfId, peerId, mediaElementId) {
   });
 
   PeerStream._audioElement = document.getElementById(mediaElementId);
+  PeerStream._audioCallElement = document.getElementById(callElementId);
+
 };
 PeerStream.onConnected = function(eventHandler) {
   PeerStream.onConnectedHandler = eventHandler;
@@ -205,10 +207,9 @@ PeerStream.startCall = function() {
         var call = PeerStream.peer.call(PeerStream.peerId, stream);
         PeerStream.callConnection = call;
         call.on('stream', function(remoteStream) {
-         var audio_element_call = document.getElementById('audio_call');
-         audio_element_call.src = URL.createObjectURL(remoteStream);
-         audio_element_call.play();
-         PeerStream.onCallConnectedHandler.call();
+        PeerStream._audioCallElement.src = URL.createObjectURL(remoteStream);
+        PeerStream._audioCallElement.play();
+        PeerStream.onCallConnectedHandler.call();
         });
         call.on('close', function() {
             PeerStream.onCallDisconnectedHandler.call();

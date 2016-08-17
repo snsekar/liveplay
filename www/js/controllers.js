@@ -124,6 +124,7 @@ angular.module('starter.controllers', [])// All this does is allow the message
 			      $scope.isBuffering = false;
             $scope.partnerReq = {};
             $scope.partnerReq.search = {};
+            $scope.isCallInprogress = false;
 
             // alert();
             if (localStorage['myid']) {
@@ -667,6 +668,13 @@ $scope.playSong = function(){
 }
 $scope.pauseSong = function(){
   PeerStream.pause();
+}
+$scope.startCall = function(){
+PeerStream.startCall();
+}
+$scope.stopCall = function(){
+  $scope.isCallInprogress=false;
+  PeerStream.stopCall();
 }
 
 })

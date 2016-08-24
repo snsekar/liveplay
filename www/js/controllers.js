@@ -45,6 +45,42 @@ angular.module('starter.controllers', [])// All this does is allow the message
     $timeout(function() {
 
         $scope.initApp();
+        $ionicPlatform.ready(function() {
+          //Push notification code
+
+              var push = PushNotification.init({
+                android: {
+                    senderID: "304952053901"
+                },
+                browser: {
+                    pushServiceURL: 'http://push.api.phonegap.com/v1/push'
+                },
+                ios: {
+                    alert: "true",
+                    badge: "true",
+                    sound: "true"
+                },
+                windows: {}
+            });
+
+            push.on('registration', function(data) {
+                console.log('RegID = '+ data.registrationId);
+            });
+
+            push.on('notification', function(data) {
+                console.log('Notification: = '+ data.message);
+                // data.message,
+                // data.title,
+                // data.count,
+                // data.sound,
+                // data.image,
+                // data.additionalData
+            });
+
+            push.on('error', function(e) {
+                console.log(e.message);
+            });
+      });
 
     }, 2000);
 

@@ -148,7 +148,7 @@ PeerStream.onPeerPause(function(){
 
 });
 PeerStream.onChat(function(chatMessage){
- $scope.appendPartnerChatMessage(chatMessage);
+ //$scope.appendPartnerChatMessage(chatMessage);
 });
 PeerStream.onCallConnected(function(){
   $scope.isCallInprogress=true;

@@ -45,43 +45,6 @@ angular.module('starter.controllers', [])// All this does is allow the message
     $timeout(function() {
 
         $scope.initApp();
-        $ionicPlatform.ready(function() {
-          //Push notification code
-
-              var push = PushNotification.init({
-                android: {
-                    senderID: "304952053901"
-                },
-                browser: {
-                    pushServiceURL: 'http://push.api.phonegap.com/v1/push'
-                },
-                ios: {
-                    alert: "true",
-                    badge: "true",
-                    sound: "true"
-                },
-                windows: {}
-            });
-
-            push.on('registration', function(data) {
-                console.log('RegID = '+ data.registrationId);
-            });
-
-            push.on('notification', function(data) {
-                console.log('Notification: = '+ data.message);
-                // data.message,
-                // data.title,
-                // data.count,
-                // data.sound,
-                // data.image,
-                // data.additionalData
-            });
-
-            push.on('error', function(e) {
-                console.log(e.message);
-            });
-      });
-
     }, 2000);
 
     $scope.selectTabWithIndex = function(index) {
@@ -190,6 +153,8 @@ angular.module('starter.controllers', [])// All this does is allow the message
         localStorage.removeItem('songs');
         localStorage.removeItem('partnersongs');
         localStorage.removeItem('chatmessages');
+        localStorage.removeItem('gcm_id');
+
 
 
         $scope.you = "";
@@ -224,19 +189,19 @@ angular.module('starter.controllers', [])// All this does is allow the message
 		function onMError(){
 			//alert('Music control error');
 		}
-		/*
+
 		MusicControls.create({
 			track       : song.name,        // optional, default : ''
 			artist      : '',                       // optional, default : ''
-			cover       : 'resources/android/icon/drawable-ldpi-icon.jpg',      // optional, default : nothing
+			cover       : 'resources/android/icon/drawable-ldpi-icon.png',      // optional, default : nothing
 			// cover can be a local path (use fullpath 'file:///storage/emulated/...', or only 'my_image.jpg' if my_image.jpg is in the www folder of your app)
 			//           or a remote url ('http://...', 'https://...', 'ftp://...')
 			isPlaying   : true,                         // optional, default : true
 			dismissable : false,                         // optional, default : false
 
 			// hide previous/next/close buttons:
-			hasPrev   : true,      // show previous button, optional, default: true
-			hasNext   : true,      // show next button, optional, default: true
+			hasPrev   : false,      // show previous button, optional, default: true
+			hasNext   : false,      // show next button, optional, default: true
 			hasClose  : true,       // show close button, optional, default: false
 
 			// Android only, optional
@@ -253,10 +218,10 @@ angular.module('starter.controllers', [])// All this does is allow the message
 					// Do something
 					break;
 				case 'music-controls-pause':
-					// Do something
+					$scope.pauseSong();
 					break;
 				case 'music-controls-play':
-					// Do something
+					$scope.playSong();
 					break;
 				case 'music-controls-destroy':
 					// Do something
@@ -285,7 +250,7 @@ angular.module('starter.controllers', [])// All this does is allow the message
 
 		MusicControls.updateIsPlaying(true); // toggle the play/pause notification button
 		//music control end
-		*/
+
         $ionicLoading.show({
             template: 'Loading...' + song.name
         });
@@ -460,6 +425,46 @@ angular.module('starter.controllers', [])// All this does is allow the message
             $scope.my_name = my_name;
             $scope.my_profile_picture = my_profile_picture;
 
+            //Registration push notification
+            if(isApp){
+
+
+            var push = PushNotification.init({
+              android: {
+                  senderID: "304952053901"
+              }
+          });
+            if(localStorage['gcm_id'] == undefined || localStorage['gcm_id'] == null || localStorage['gcm_id'] == ''){
+              push.on('registration', function(data) {
+                  var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/update_gcm_id";
+                  var payload = {
+                    "user_id": myid,
+                    "gcm_id": data.registrationId
+                  };
+                  $http.put(url,payload).success(function(response, status, headers, config){
+                  localStorage['gcm_id'] = data.registrationId;
+                  console.log('RegID = '+ data.registrationId);
+                  }).error(function(err, status, headers, config){
+                         console.log("Error occured while getting gcm_id");
+                });
+              });
+            }
+            push.on('notification', function(data) {
+                console.log('Notification: = '+ data.message);
+                // data.message,
+                // data.title,
+                // data.count,
+                // data.sound,
+                // data.image,
+                // data.additionalData
+                $scope.appendPartnerChatMessage(data.message);
+                $scope.selectTabWithIndex(2);
+            });
+
+            push.on('error', function(e) {
+                console.log(e.message);
+            });
+          }
             if(response.Items[0].partner_id != undefined){
                 partnerid = response.Items[0].partner_id.S;
                 localStorage['partnerid'] = partnerid;
@@ -470,8 +475,15 @@ angular.module('starter.controllers', [])// All this does is allow the message
                   if(response.Count != 0){
                     partner_name = response.Items[0].display_name.S;
                     partner_profile_picture = response.Items[0].profile_picture.S;
+
                     localStorage['partner_name'] = partner_name;
                     localStorage['partner_profile_picture'] = partner_profile_picture;
+                    partner_gcm_id = "null";
+                    if(response.Items[0].gcm_id != undefined){
+                      partner_gcm_id = response.Items[0].gcm_id.S;
+                      localStorage['partner_gcm_id'] = partner_gcm_id;
+                    }
+
                     $scope.partner_name = partner_name;
                     $scope.partner_profile_picture = partner_profile_picture;
                   }else{
@@ -505,6 +517,22 @@ angular.module('starter.controllers', [])// All this does is allow the message
         });
         localStorage['chatmessages'] = JSON.stringify($scope.chat.messages);
         $ionicScrollDelegate.scrollBottom(true);
+        //Send push notification
+
+        var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/push_notification";
+
+        var payload = {
+          "gcm_id": partner_gcm_id,
+          "title": 'Liveplay',
+          "message": $scope.chat.data.message
+        };
+        $http.post(url,payload).success(function(response, status, headers, config){
+          console.log(JSON.stringify(response));
+
+      }).error(function(err, status, headers, config){
+           console.log("Error occured while sending push notification")
+      });
+
         PeerStream.chat($scope.chat.data.message);
         delete $scope.chat.data.message;
     };
@@ -534,6 +562,7 @@ angular.module('starter.controllers', [])// All this does is allow the message
       url = url +"PhoneNumber="+$scope.loginData.user_id;
       url = url +"&Message="+$scope.loginData.code +" is your verification code for Liveplay";
 
+    //  $ionicSlideBoxDelegate.slide(1);
       $http.post(url,{}).success(function(response, status, headers, config){
         if(response.Error == undefined){
           $scope.loginData.wrongMobileNumber = false;
@@ -549,7 +578,7 @@ angular.module('starter.controllers', [])// All this does is allow the message
     }
     $scope.verifyCode = function(){
       if($scope.loginData.code == $scope.loginData.entered_code){
-//  if("123" == $scope.loginData.entered_code){
+  //if("123" == $scope.loginData.entered_code){
 
         $scope.loginData.wrongcode = false;
         var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/";

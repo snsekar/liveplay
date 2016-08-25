@@ -204,6 +204,7 @@ PeerStream.stop = function() {
 
 PeerStream.startCall = function() {
   navigator.webkitGetUserMedia({video: false, audio: true}, function(stream) {
+    console.log("call peerId = "+PeerStream.peerId);
         var call = PeerStream.peer.call(PeerStream.peerId, stream);
         PeerStream.callConnection = call;
         call.on('stream', function(remoteStream) {

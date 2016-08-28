@@ -326,8 +326,6 @@ PeerStream._fetchNextFileChunk = function () {
           console.log('media-chunk-appended');
           PeerStream._sendData("media-chunk", evt.target.result);
         }
-
-
       } else {
           console.log("Read error: " + evt.target.error);
           //stop playback

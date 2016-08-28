@@ -41,132 +41,18 @@ angular.module('starter.controllers', [])// All this does is allow the message
 .controller('AppCtrl', function($scope, $ionicModal, $timeout, $ionicPlatform, $ionicLoading, $ionicSideMenuDelegate, $ionicTabsDelegate,$ionicScrollDelegate,$ionicSlideBoxDelegate,$http) {
 
 	initIonicVars($scope,$ionicLoading,$ionicSideMenuDelegate,$http);
+  include_initappjs($scope, $ionicModal, $timeout, $ionicPlatform, $ionicLoading, $ionicSideMenuDelegate, $ionicTabsDelegate,$ionicScrollDelegate,$ionicSlideBoxDelegate,$http);
+  include_resetappjs($scope, $ionicModal, $timeout, $ionicPlatform, $ionicLoading, $ionicSideMenuDelegate, $ionicTabsDelegate,$ionicScrollDelegate,$ionicSlideBoxDelegate,$http);
+  include_tabselectedjs($scope, $ionicModal, $timeout, $ionicPlatform, $ionicLoading, $ionicSideMenuDelegate, $ionicTabsDelegate,$ionicScrollDelegate,$ionicSlideBoxDelegate,$http);
+  include_loadsongsjs($scope, $ionicModal, $timeout, $ionicPlatform, $ionicLoading, $ionicSideMenuDelegate, $ionicTabsDelegate,$ionicScrollDelegate,$ionicSlideBoxDelegate,$http);
+
 	//Start of app
     $timeout(function() {
 
         $scope.initApp();
     }, 2000);
 
-    $scope.selectTabWithIndex = function(index) {
-      if(index == 1 && partnerid == undefined){
-        $scope.partnerReq = {};
-        var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/";
-        url = url + myid;
 
-        $http.get(url).success(function(response, status, headers, config){
-          if(response.Count != 0){
-
-            var partnerReq = response.Items[0].partner_request_id;
-            if(partnerReq == undefined || partnerReq.S == "null"){
-              $scope.partnerReq.isPartnerRequest = false;
-            }else{
-              $scope.partnerReq.isPartnerRequest = true;
-              var senderReceiver = partnerReq.S.split(" ")[0];
-              var partnerReqId = partnerReq.S.split(" ")[1];
-              if(senderReceiver == "sender")
-              {
-                $scope.partnerReq.isPartnerRequestSender = true;
-              }
-              if(senderReceiver == "receiver"){
-                $scope.partnerReq.isPartnerRequestReceiver = true;
-              }
-              var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/";
-              url = url +partnerReqId;
-
-              $http.get(url).success(function(response, status, headers, config){
-                if(response.Count != 0){
-                  $scope.partnerReq.user_id = partnerReqId;
-                  $scope.partnerReq.user_name = response.Items[0].display_name.S;
-                  $scope.partnerReq.user_profile_picture = response.Items[0].profile_picture.S;
-                }else{
-                  console.log("User not exists");
-                }
-            }).error(function(err, status, headers, config){
-                 console.log("Error occured while login.")
-            });
-            }
-
-          }else{
-              console.log("User not exists");
-          }
-      }).error(function(err, status, headers, config){
-           console.log("Error occured while login.")
-      });
-      }
-      $ionicTabsDelegate.select(index);
-    }
-
-    $scope.initApp = function() {
-
-            $scope.youOnline = false;
-            $scope.partnerOnline = false;
-            $scope.showHideYou = true;
-            $scope.showHidePartner = false;
-            $scope.showHideChat = false;
-
-            $scope.youCount = 0;
-            $scope.partnerCount = 0;
-
-
-            $scope.tog = 1;
-            $scope.songs = [];
-            $scope.partnersongs = [];
-            $scope.selectedSong = 'Please select song';
-            $scope.selectedSongPath = ' ';
-            $scope.duplicateID = false;
-
-            $scope.chat = {};
-            $scope.chat.data = {};
-            $scope.chat.myId = $scope.you;
-            $scope.chat.messages = [];
-
-			      $scope.isBuffering = false;
-            $scope.partnerReq = {};
-            $scope.partnerReq.search = {};
-            $scope.isCallInprogress = false;
-
-            // alert();
-            if (localStorage['myid']) {
-                myid = localStorage['myid'];
-                chatmessages = localStorage['chatmessages'];
-                console.log("chatmessages = "+JSON.stringify(chatmessages));
-
-                if(chatmessages != undefined && chatmessages != null){
-                  $scope.chat.messages = JSON.parse(chatmessages);
-                }
-                $scope.loginData.user_id = myid;
-                $scope.doLogin();
-
-            } else {
-                $scope.login();
-            }
-
-
-            $scope.$digest();
-
-
-        }
-
-    $scope.resetUserData = function() {
-        localStorage.removeItem('myid');
-        localStorage.removeItem('partnerid');
-        localStorage.removeItem('songs');
-        localStorage.removeItem('partnersongs');
-        localStorage.removeItem('chatmessages');
-        localStorage.removeItem('gcm_id');
-
-
-
-        $scope.you = "";
-        $scope.partner = "";
-        $scope.youCount = 0;
-        $scope.partnerCount = 0;
-        $scope.songs = [];
-        $scope.partnersongs = [];
-        $scope.loginData = {};
-
-        $scope.$digest();
-    }
     $scope.partnerSongSelected = function(song) {
         $scope.selectedSong = song.name;
         $ionicLoading.show({
@@ -218,9 +104,11 @@ angular.module('starter.controllers', [])// All this does is allow the message
 					// Do something
 					break;
 				case 'music-controls-pause':
+        MusicControls.updateIsPlaying(false);
 					$scope.pauseSong();
 					break;
 				case 'music-controls-play':
+          MusicControls.updateIsPlaying(true);
 					$scope.playSong();
 					break;
 				case 'music-controls-destroy':
@@ -281,105 +169,7 @@ angular.module('starter.controllers', [])// All this does is allow the message
 			  console.log('Failed to get caller local stream' ,JSON.stringify(err));
 			});
 		}
-    $scope.loadSongs = function() {
-        $timeout(function() {
-            //	alert($scope.showHideYou);
-            // if($scope.showHideYou){
-            if (isApp) {
-                if (window.localStorage['songs']) {
-                    //console.log(localStorage['songs']);
-                    $scope.songs = JSON.parse(localStorage['songs']);
-                    $scope.youCount = $scope.songs.length;
-                    $ionicLoading.hide();
-                } else {
-                    var localURLs = [
-                        "file:///storage/"
 
-                    ];
-                    var index = 0;
-                    var i;
-                    var statusStr = "";
-                    var endOfRecursive = "";
-                    function addFileEntry(entry) {
-                      $ionicLoading.show({
-                          template: 'Loading songs from device...'
-                      });
-                        var dirReader = entry.createReader();
-                        dirReader.readEntries(
-                            function(entries) {
-                                var fileStr = "";
-                                var i;
-                                if(endOfRecursive == ""){
-                                  endOfRecursive = entries[entries.length-1].fullPath;
-                                }
-                                for (i = 0; i < entries.length; i++) {
-                                    if (entries[i].isDirectory === true) {
-                                        // Recursive -- call back into this subdirectory
-                                        addFileEntry(entries[i]);
-                                    } else {
-
-                                        if (entries[i].name.indexOf(".mp3") != -1) {
-                                            //	console.log(entries[i].filesystem);
-                                            //	var filePath = entries[i].fullPath	;
-                                            //	entries[i].file(function(file){
-                                            $scope.songs.push({
-                                                name: entries[i].name, //+ " ("+Math.round( (file.size/1000000 ) * 10 ) / 10+" mb)",
-                                                filePath: entries[i].fullPath
-                                            });
-
-                                            $scope.youCount = $scope.songs.length;
-                                            localStorage['songs'] = JSON.stringify($scope.songs);
-                                            console.log($scope.songs.length + ' ' + entries[i].name);
-                                            //console.log(JSON.stringify(file));
-                                            //	   });
-
-                                        }
-                                    }
-                                    $ionicLoading.hide();
-                                }
-
-                            },
-                            function(error) {
-                                console.log("readEntries error : " + error.code);
-                            }
-                        );
-                    };
-
-                    function addFileEntryWrapper(entry) {
-                        addFileEntry(entry);
-
-                    };
-
-                    var addError = function(error) {
-                        console.log("Filesystem error : " + error.code + ", " + error.message);
-                    };
-                    for (i = 0; i < localURLs.length; i++) {
-                        if (localURLs[i] === null || localURLs[i].length === 0) {
-                            continue; // skip blank / non-existent paths for this platform
-                        }
-                        window.resolveLocalFileSystemURL(localURLs[i], addFileEntryWrapper, addError);
-                    }
-
-                }
-            }
-
-            if (window.localStorage['partnersongs']) {
-                //console.log(localStorage['songs']);
-                $scope.partnersongs = JSON.parse(localStorage['partnersongs']);
-                $scope.partnerCount = $scope.partnersongs.length;
-
-
-                return;
-            } else {
-                $scope.sendToPeer({
-                    action: 'get-songlist'
-                });
-            }
-
-
-
-        }, 1000);
-    }
 
 
 
@@ -562,23 +352,23 @@ angular.module('starter.controllers', [])// All this does is allow the message
       url = url +"PhoneNumber="+$scope.loginData.user_id;
       url = url +"&Message="+$scope.loginData.code +" is your verification code for Liveplay";
 
-    //  $ionicSlideBoxDelegate.slide(1);
-      $http.post(url,{}).success(function(response, status, headers, config){
-        if(response.Error == undefined){
-          $scope.loginData.wrongMobileNumber = false;
-          $ionicSlideBoxDelegate.slide(1);
-        }else{
-            $scope.loginData.wrongMobileNumber = true;
-        }
-
-    }).error(function(err, status, headers, config){
-         console.log("Error occured while sending verification code.")
-    });
+     $ionicSlideBoxDelegate.slide(1);
+    //   $http.post(url,{}).success(function(response, status, headers, config){
+    //     if(response.Error == undefined){
+    //       $scope.loginData.wrongMobileNumber = false;
+    //       $ionicSlideBoxDelegate.slide(1);
+    //     }else{
+    //         $scope.loginData.wrongMobileNumber = true;
+    //     }
+    //
+    // }).error(function(err, status, headers, config){
+    //      console.log("Error occured while sending verification code.")
+    // });
 
     }
     $scope.verifyCode = function(){
-      if($scope.loginData.code == $scope.loginData.entered_code){
-  //if("123" == $scope.loginData.entered_code){
+    //  if($scope.loginData.code == $scope.loginData.entered_code){
+  if("123" == $scope.loginData.entered_code){
 
         $scope.loginData.wrongcode = false;
         var url = "https://5j92d7undi.execute-api.us-west-2.amazonaws.com/dev/users/";
@@ -741,5 +531,12 @@ $scope.stopCall = function(){
   $scope.isCallInprogress=false;
   PeerStream.stopCall();
 }
+
+$scope.footerExpand = function() {
+  console.log('Footer expanded');
+};
+$scope.footerCollapse = function() {
+  console.log('Footer collapsed');
+};
 
 })

@@ -9,6 +9,8 @@
     <link href="css/style.css" rel="stylesheet">
     <link href="css/chat.css" rel="stylesheet">
     <link href="css/ion-floating-menu.css" rel="stylesheet">
+    <link href="lib/drawer/ionic.contrib.drawer.vertical.css" rel="stylesheet">
+
 
 
     <!-- IF using Sass (run gulp sass first), then uncomment below and remove the CSS includes above
@@ -16,21 +18,33 @@
     -->
 
     <!-- ionic/angularjs js -->
-    <script src="lib/ionic/js/ionic.bundle.js"></script>
+    <script src="lib/ionic/js/ionic131.bundle.min.js"></script>
+    <!-- <script src="lib/ionic/js/ionic.bundle.js"></script> -->
+    <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/ionic/1.3.1/js/ionic.bundle.js"></script> -->
 
     <!-- cordova script (this will be a 404 during development) -->
     <script src="cordova.js"></script>
 
     <!-- your app's js -->
-    <script type="text/javascript" src="js/jquery.min.js"></script>
-    <script type="text/javascript" src="js/peer.js"></script>
-    <script type="text/javascript" src="js/peerstream.js"></script>
+    <script type="text/javascript" src="lib/jquery.min.js"></script>
+    <script type="text/javascript" src="lib/peer.js"></script>
+    <script type="text/javascript" src="lib/peerstream.js"></script>
+    <script type="text/javascript" src="lib/musicmetadata.js"></script>
+    <script type="text/javascript" src="lib/ion-floating-menu.js"></script>
+    <script type="text/javascript" src="lib/ion-pullup.js"></script>
+    <script type="text/javascript" src="lib/drawer/ionic.contrib.drawer.vertical.js"></script>
 
-  	<script type="text/javascript" src="js/buffering.js"></script>
-  	<script type="text/javascript" src="js/peerconnection.js"></script>
-	  <script src="js/app.js"></script>
+
+
+
+    <script type="text/javascript" src="js/initapp.js"></script>
+    <script type="text/javascript" src="js/resetapp.js"></script>
+    <script type="text/javascript" src="js/tabselected.js"></script>
+    <script type="text/javascript" src="js/loadsongs.js"></script>
+    <script type="text/javascript" src="js/buffering.js"></script>
+    <script type="text/javascript" src="js/peerconnection.js"></script>
+    <script src="js/app.js"></script>
     <script src="js/controllers.js"></script>
-    <script src="js/ion-floating-menu.js"></script>
 
 	<script>
 		console.log(navigator.userAgent);
@@ -78,7 +92,7 @@
 	var ms = new MediaSource();
 
 	var sourceBuffer = 0;
-
+  var recursiveCounter =0;
 
 	function initIonicVars(scope,ionicloading,sidemenu,http){
 		$scope = scope;

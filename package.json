@@ -33,7 +33,8 @@
       "locator": "cordova-fabric-plugin",
       "id": "cordova-fabric-plugin"
     },
-    "cordova-plugin-file"
+    "cordova-plugin-file",
+    "cordova-plugin-webrtc"
   ],
   "cordovaPlatforms": [
     "android"

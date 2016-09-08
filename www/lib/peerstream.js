@@ -63,11 +63,13 @@ PeerStream.initPeerConnection = function () {
 PeerStream.connect = function(selfId, peerId, mediaElementId,callElementId) {
   PeerStream.selfId = selfId;
   PeerStream.peerId = peerId;
-
+console.log('connect called');
  PeerStream.peer = new Peer(selfId, {
       key: 'iulf39j4p5w2ke29'
   });
  PeerStream.peer.on('open', function(id) {
+   console.log('connection open');
+
     PeerStream.onConnectedHandler.call(this,id);
     PeerStream.peerConnection =PeerStream.peer.connect(peerId, {
         reliable: true

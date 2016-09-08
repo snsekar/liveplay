@@ -47,13 +47,15 @@
     <script src="js/controllers.js"></script>
 
 	<script>
-		console.log(navigator.userAgent);
 
+		console.log(navigator.userAgent);
+    //alert(navigator.getUserMedia);
+    //alert(RTCDataChannel);
 	var myid ;
 	var partnerid ;
   var chatmessages;
 
-	var context = new AudioContext();
+	//var context = new AudioContext();
 	var chunkSize  = 256 * 1024; // bytes
 	var currentFile ;
 	var offset     = 0;

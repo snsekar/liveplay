@@ -19,6 +19,8 @@ angular.module('starter', ['ionic', 'starter.controllers','ion-floating-menu','i
       // org.apache.cordova.statusbar required
       StatusBar.styleDefault();
     }
+	console.log("Loading pperJs");
+	loadPeerJs();
   });
 })
 

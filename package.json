@@ -34,7 +34,7 @@
       "id": "cordova-fabric-plugin"
     },
     "cordova-plugin-file",
-    "cordova-plugin-webrtc"
+    "cordova-plugin-media"
   ],
   "cordovaPlatforms": [
     "android"

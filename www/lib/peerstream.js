@@ -8,11 +8,14 @@ PeerStream._audioElement = "";
 PeerStream.__audioCallElement = "";
 PeerStream._mediaSource =  "";
 PeerStream._mediaSourceBuffer = "";
+PeerStream._currentBufferFile = {};
+PeerStream.isStartPlay = true;
+PeerStream.audio_player = {};
 
 PeerStream._fileSourceObject = {
   file : {},
   fileCursor : 0,
-  fileChunkSize : 256 * 1024
+  fileChunkSize : 256 * 1024 * 2
 };
 
 
@@ -64,9 +67,13 @@ PeerStream.connect = function(selfId, peerId, mediaElementId,callElementId) {
   PeerStream.selfId = selfId;
   PeerStream.peerId = peerId;
 console.log('connect called');
+console.log('connect called before');
+
  PeerStream.peer = new Peer(selfId, {
       key: 'iulf39j4p5w2ke29'
   });
+  console.log('connect called after');
+
  PeerStream.peer.on('open', function(id) {
    console.log('connection open');
 
@@ -104,6 +111,7 @@ console.log('connect called');
       PeerStream.onDisconnectedHandler.call();
    });
  PeerStream.peer.on('error', function(err) {
+   console.log("err1 "+JSON.stringify(err));
    var data = {
      type : 'error',
      payload : err.type
@@ -162,9 +170,10 @@ PeerStream.resetPlayBack = function(mediaMIMEType) {
   //stop playback
   PeerStream.stop();
   //clear buffer
-  PeerStream._mediaSource =  new MediaSource();
-  PeerStream._mediaSourceBuffer ="";
-  PeerStream._audioElement.src = window.URL.createObjectURL(PeerStream._mediaSource);
+  // PeerStream._mediaSource =  new MediaSource();
+  // PeerStream._mediaSourceBuffer ="";
+  // PeerStream._audioElement.src = window.URL.createObjectURL(PeerStream._mediaSource);
+  PeerStream.isStartPlay = true;
 }
 PeerStream.attachSource = function(mediaType, mediaSourceObject) {
 
@@ -183,14 +192,18 @@ PeerStream.attachSource = function(mediaType, mediaSourceObject) {
 
 PeerStream.play = function() {
   //if(PeerStream._audioElement.played.length == 0){
-    PeerStream._audioElement.play();
+//    PeerStream._audioElement.play();
+  console.log("playing.....!!!");
+    PeerStream.audio_player.play();
     PeerStream._sendData("play","");
     PeerStream.onPlayHandler.call();
 //  }
 };
 
 PeerStream.pause = function() {
-  PeerStream._audioElement.pause();
+  //PeerStream._audioElement.pause();
+  PeerStream.audio_player.pause();
+
   PeerStream._sendData("pause","");
   PeerStream.onPauseHandler.call();
 
@@ -202,6 +215,9 @@ PeerStream.seek = function(seekedTime) {
 
 PeerStream.stop = function() {
   //connect to peer
+  if(PeerStream.audio_player instanceof Media){
+    PeerStream.audio_player.stop();
+  }
 };
 
 PeerStream.startCall = function() {
@@ -267,14 +283,81 @@ PeerStream._sendData = function(event,data){
 
 PeerStream._onData = function(data) {
  if(data.event == 'media-chunk'){
+   console.log("media chunk received");
    //append to audio buffer
    if(data.payload != ""){
-     if(PeerStream._mediaSourceBuffer == ""){
-       PeerStream._mediaSourceBuffer = PeerStream._mediaSource.addSourceBuffer('audio/mpeg');
-     }
-    PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(data.payload));
-    console.log('media-chunk-appended');
-    PeerStream._sendData('media-chunk-ack',"");
+    //  if(PeerStream._mediaSourceBuffer == ""){
+    //    PeerStream._mediaSourceBuffer = PeerStream._mediaSource.addSourceBuffer('audio/mpeg');
+    //  }
+    // PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(data.payload));
+    // console.log('media-chunk-appended');
+    // PeerStream._sendData('media-chunk-ack',"");
+    var fileChunk = data.payload;
+    function win(writer) {
+      writer.onwrite = function(evt) {
+        console.log("writing file chunk");
+        console.log("isStartPlay = "+PeerStream.isStartPlay);
+        if (PeerStream.isStartPlay) {
+           //writer.truncate(0);
+        } else {
+          writer.seek(writer.length);
+        }
+        PeerStream._sendData("media-chunk-ack", "");
+      };
+      writer.onwriteend = function(e) {
+        console.log('WRITE SUCCESS');
+        if (PeerStream.isStartPlay) {
+          PeerStream.isStartPlay = false;
+          var playError = function(err) {
+            console.log("playAudio():Audio Error: " + JSON.stringify(err));
+          }
+          var playStopped = function() {
+            console.log('play stopped');
+          }
+          console.log("creating player object");
+          console.log(Media);
+          console.log(cordova.file.dataDirectory);
+         PeerStream.audio_player = new Media(cordova.file.dataDirectory+"song.mp3", playStopped, playError);
+        // var tmpFilePath = cordova.file.tmpDirectory+"song.mp3";
+        // tmpFilePath = tmpFilePath.replace('file://', '');
+        // PeerStream.audio_player = new Media(tmpFilePath, playStopped, playError);
+
+
+          PeerStream.play();
+        }
+      };
+        writer.onerror = function(e) {
+          console.log('Error while writing filechunk to bufferFile');
+
+        }
+      writer.write(fileChunk);
+    };
+
+    var fail = function(evt) {
+      console.log('song.mp3 error ' + JSON.stringify(evt));
+    };
+
+    function songFileEntry(entry) {
+      console.log('start create song file');
+      entry.file(gotBufferFile, fail);
+      entry.createWriter(win, fail);
+
+    }
+
+    function gotBufferFile(bfile) {
+      console.log('got buffer file');
+    PeerStream._currentBufferFile = bfile;
+    }
+
+    function gotDir(dirEntry) {
+      //console.log('got dir');
+      console.log("got file dir");
+      dirEntry.getFile("song.mp3", {
+        create: true
+      }, songFileEntry, fail);
+    }
+    console.log("reading file");
+    window.resolveLocalFileSystemURL(cordova.file.dataDirectory, gotDir, fail);
   }else{
     console.log(" *** Done receiving file *** ");
     PeerStream._mediaSource.endOfStream();
@@ -282,6 +365,7 @@ PeerStream._onData = function(data) {
  }
 
  if(data.event == 'media-chunk-ack'){
+   PeerStream.play();
    PeerStream._fetchNextFileChunk();
  }
 
@@ -291,11 +375,14 @@ PeerStream._onData = function(data) {
 
  }
  if(data.event == 'play'){
-   PeerStream._audioElement.play();
+  // PeerStream._audioElement.play();
+  PeerStream.audio_player.play();
    PeerStream.onPeerPlayHandler.call();
  }
  if(data.event == 'pause'){
-   PeerStream._audioElement.pause();
+//   PeerStream._audioElement.pause();
+  PeerStream.audio_player.pause();
+
    PeerStream.onPeerPauseHandler.call();
  }
 };
@@ -314,20 +401,90 @@ PeerStream._fetchNextFileChunk = function () {
   var blob = PeerStream._fileSourceObject.file.slice(cursor, cursor + chunkSize);
   r.onload = function(evt) {
       if (evt.target.error == null) {
-        if(PeerStream._mediaSourceBuffer == ""){
-          setTimeout(function() {
-            PeerStream._mediaSourceBuffer = PeerStream._mediaSource.addSourceBuffer('audio/mpeg');
-            PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(evt.target.result));
-            PeerStream.play();
-            console.log('media-chunk-appended');
-            PeerStream._sendData("media-chunk", evt.target.result);
-          }, 1500);
-        }else{
-          PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(evt.target.result));
-          PeerStream.play();
-          console.log('media-chunk-appended');
-          PeerStream._sendData("media-chunk", evt.target.result);
-        }
+        // if(PeerStream._mediaSourceBuffer == ""){
+        //   setTimeout(function() {
+        //     PeerStream._mediaSourceBuffer = PeerStream._mediaSource.addSourceBuffer('audio/mpeg');
+        //     PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(evt.target.result));
+        //     PeerStream.play();
+        //     console.log('media-chunk-appended');
+        //     PeerStream._sendData("media-chunk", evt.target.result);
+        //   }, 1500);
+        // }else{
+        //   PeerStream._mediaSourceBuffer.appendBuffer(new Uint8Array(evt.target.result));
+        //   PeerStream.play();
+        //   console.log('media-chunk-appended');
+        //   PeerStream._sendData("media-chunk", evt.target.result);
+        // }
+        console.log("got file chunk");
+        var fileChunk = evt.target.result;
+        function win(writer) {
+    			writer.onwrite = function(evt) {
+            console.log("writing file chunk");
+            console.log("isStartPlay = "+PeerStream.isStartPlay);
+            if (PeerStream.isStartPlay) {
+               //writer.truncate(0);
+            } else {
+              writer.seek(writer.length);
+            }
+            PeerStream._sendData("media-chunk", fileChunk);
+    			};
+          writer.onwriteend = function(e) {
+            console.log('WRITE SUCCESS');
+            if (PeerStream.isStartPlay) {
+              PeerStream.isStartPlay = false;
+              var playError = function(err) {
+                console.log("playAudio():Audio Error: " + JSON.stringify(err));
+              }
+              var playStopped = function() {
+                console.log('play stopped');
+              }
+              console.log("creating player object");
+              console.log(Media);
+              console.log(cordova.file.dataDirectory);
+             PeerStream.audio_player = new Media(cordova.file.dataDirectory+"song.mp3", playStopped, playError);
+            // var tmpFilePath = cordova.file.tmpDirectory+"song.mp3";
+            // tmpFilePath = tmpFilePath.replace('file://', '');
+            // PeerStream.audio_player = new Media(tmpFilePath, playStopped, playError);
+
+
+              PeerStream.play();
+            }
+          };
+            writer.onerror = function(e) {
+              console.log('Error while writing filechunk to bufferFile');
+
+            }
+          writer.write(fileChunk);
+    		};
+
+    		var fail = function(evt) {
+    			console.log('song.mp3 error ' + JSON.stringify(evt));
+    		};
+
+    		function songFileEntry(entry) {
+    			console.log('start create song file');
+    			entry.file(gotBufferFile, fail);
+    			entry.createWriter(win, fail);
+
+    		}
+
+    		function gotBufferFile(bfile) {
+    			console.log('got buffer file');
+    		PeerStream._currentBufferFile = bfile;
+    		}
+
+    		function gotDir(dirEntry) {
+    			//console.log('got dir');
+          console.log("got file dir");
+    			dirEntry.getFile("song.mp3", {
+    				create: true
+    			}, songFileEntry, fail);
+    		}
+        console.log("reading file");
+    		window.resolveLocalFileSystemURL(cordova.file.dataDirectory, gotDir, fail);
+
+
+
       } else {
           console.log("Read error: " + evt.target.error);
           //stop playback

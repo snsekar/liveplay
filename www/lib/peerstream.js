@@ -11,6 +11,8 @@ PeerStream._mediaSourceBuffer = "";
 PeerStream._currentBufferFile = {};
 PeerStream.isStartPlay = true;
 PeerStream.audio_player = {};
+PeerStream.buffer_audio_player = {};
+
 
 PeerStream._fileSourceObject = {
   file : {},
@@ -169,6 +171,7 @@ PeerStream.disConnect = function(peerId) {
 PeerStream.resetPlayBack = function(mediaMIMEType) {
   //stop playback
   PeerStream.stop();
+  PeerStream.audio_player = {};
   //clear buffer
   // PeerStream._mediaSource =  new MediaSource();
   // PeerStream._mediaSourceBuffer ="";
@@ -187,6 +190,14 @@ PeerStream.attachSource = function(mediaType, mediaSourceObject) {
     PeerStream._fileSourceObject.file = mediaSourceObject ;
     PeerStream._fileSourceObject.fileCursor = 0 ;
     PeerStream._fetchNextFileChunk();
+    // for(var i=1;i<5;i++){
+    //   setTimeout(function() {
+    //     console.log("fetching next chunk...");
+    //   //  PeerStream._fileSourceObject.fileCursor = cursor + chunkSize;
+    //     PeerStream._fetchNextFileChunk();
+    //   },i*10000);
+    // }
+
   }
 };
 
@@ -294,7 +305,7 @@ PeerStream._onData = function(data) {
     // PeerStream._sendData('media-chunk-ack',"");
     var fileChunk = data.payload;
     function win(writer) {
-      writer.onwrite = function(evt) {
+  //    writer.onwrite = function(evt) {
         console.log("writing file chunk");
         console.log("isStartPlay = "+PeerStream.isStartPlay);
         if (PeerStream.isStartPlay) {
@@ -303,7 +314,7 @@ PeerStream._onData = function(data) {
           writer.seek(writer.length);
         }
         PeerStream._sendData("media-chunk-ack", "");
-      };
+  //    };
       writer.onwriteend = function(e) {
         console.log('WRITE SUCCESS');
         if (PeerStream.isStartPlay) {
@@ -394,7 +405,7 @@ PeerStream._fetchNextFileChunk = function () {
   var fileSize = PeerStream._fileSourceObject.file.size;
   if (cursor > fileSize) {
       console.log(" *** Done reading file *** ");
-      PeerStream._mediaSource.endOfStream();
+      //PeerStream._mediaSource.endOfStream();
       PeerStream._sendData("media-chunk", "");
       return;
   }
@@ -418,16 +429,19 @@ PeerStream._fetchNextFileChunk = function () {
         console.log("got file chunk");
         var fileChunk = evt.target.result;
         function win(writer) {
-    			writer.onwrite = function(evt) {
-            console.log("writing file chunk");
+
             console.log("isStartPlay = "+PeerStream.isStartPlay);
             if (PeerStream.isStartPlay) {
                //writer.truncate(0);
+               console.log("writer.position = "+writer.position);
+               console.log("writer.length = "+writer.length);
+
             } else {
+              console.log("writer.position = "+writer.position);
               writer.seek(writer.length);
             }
             PeerStream._sendData("media-chunk", fileChunk);
-    			};
+    	//		};
           writer.onwriteend = function(e) {
             console.log('WRITE SUCCESS');
             if (PeerStream.isStartPlay) {
@@ -441,14 +455,43 @@ PeerStream._fetchNextFileChunk = function () {
               console.log("creating player object");
               console.log(Media);
               console.log(cordova.file.dataDirectory);
-             PeerStream.audio_player = new Media(cordova.file.dataDirectory+"song.mp3", playStopped, playError);
+
+
+
+                PeerStream.audio_player = new Media(cordova.file.dataDirectory+"song.mp3", playStopped, playError);
+                PeerStream.play();
+
             // var tmpFilePath = cordova.file.tmpDirectory+"song.mp3";
             // tmpFilePath = tmpFilePath.replace('file://', '');
             // PeerStream.audio_player = new Media(tmpFilePath, playStopped, playError);
 
+            }else{
+              console.log("loading buffer player");
+              console.log("a getDuration = "+PeerStream.audio_player.getDuration());
+              PeerStream.audio_player.getCurrentPosition(        // success callback
+          function (position) {
+              if (position > -1) {
+                  console.log("a getCurrentPosition = "+(position) + " sec");
+                  PeerStream.buffer_audio_player = new Media(cordova.file.dataDirectory+"song.mp3", playStopped, playError);
+                  PeerStream.buffer_audio_player.seekTo(position*1000);
+                  PeerStream.buffer_audio_player.play();
 
-              PeerStream.play();
+                  PeerStream.audio_player.stop();
+                  PeerStream.audio_player = PeerStream.buffer_audio_player;
+              }
+          },
+          // error callback
+          function (e) {
+              console.log("Error getting pos=" + e);
+          });
+
+
+              PeerStream.buffer_audio_player = new Media(cordova.file.dataDirectory+"song.mp3", playStopped, playError);
+
+            //  PeerStream.play();
+
             }
+
           };
             writer.onerror = function(e) {
               console.log('Error while writing filechunk to bufferFile');
@@ -491,7 +534,10 @@ PeerStream._fetchNextFileChunk = function () {
           return;
       }
 
-       PeerStream._fileSourceObject.fileCursor = cursor + chunkSize;
+      PeerStream._fileSourceObject.fileCursor = cursor + chunkSize;
+
+
   };
   r.readAsArrayBuffer(blob);
+
 }

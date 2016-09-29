@@ -1,0 +1,21 @@
+<ion-modal-view style="width: 95%;">
+  <ion-content>
+      <!-- <div class="card mycard"  ng-repeat = "song in songs | orderBy : 'name'"> -->
+        <!-- <div class="card " collection-repeat="song in songs | orderBy : 'name'"  item-width="90%"    item-height="11%">
+
+        <a href="#" class="item item-icon-left myitem mycard" ng-click = "songSelected(song);" >
+          <i class="icon ion-music-note"></i>
+          {{song.name}}<br>Artist name
+        </a>
+      </div> -->
+      <!-- <div class="card mycard" ng-repeat="i in getNumber(number) track by $index"> -->
+        <div class="card " collection-repeat="i in getNumber(number) track by $index"  item-width="90%"    item-height="11%">
+
+        <a href="#" class="item item-icon-left myitem mycard">
+          <i class="icon ion-music-note"></i>
+          {{$index}} Lesa lesa<br>Artist name
+        </a>
+      </div>
+
+  </ion-content>
+</ion-modal-view>

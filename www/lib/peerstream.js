@@ -467,7 +467,7 @@ PeerStream._fetchNextFileChunk = function () {
               console.log(Media);
               console.log(cordova.file.dataDirectory);
                 PeerStream.audio_player = new Media(cordova.file.dataDirectory+"song.mp3", playStopped, playError);
-              //  PeerStream.play();
+                PeerStream.play();
 
             // var tmpFilePath = cordova.file.tmpDirectory+"song.mp3";
             // tmpFilePath = tmpFilePath.replace('file://', '');

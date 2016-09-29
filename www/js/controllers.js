@@ -39,7 +39,10 @@ angular.module('starter.controllers', [])// All this does is allow the message
 })
 
 .controller('AppCtrl', function($scope, $ionicModal, $timeout, $ionicPlatform, $ionicLoading, $ionicSideMenuDelegate, $ionicTabsDelegate,$ionicScrollDelegate,$ionicSlideBoxDelegate,$http) {
-
+  $scope.number = 1000;
+  $scope.getNumber = function(num) {
+      return new Array(num);
+  }
 	initIonicVars($scope,$ionicLoading,$ionicSideMenuDelegate,$http);
   include_initappjs($scope, $ionicModal, $timeout, $ionicPlatform, $ionicLoading, $ionicSideMenuDelegate, $ionicTabsDelegate,$ionicScrollDelegate,$ionicSlideBoxDelegate,$http);
   include_resetappjs($scope, $ionicModal, $timeout, $ionicPlatform, $ionicLoading, $ionicSideMenuDelegate, $ionicTabsDelegate,$ionicScrollDelegate,$ionicSlideBoxDelegate,$http);
@@ -50,6 +53,26 @@ angular.module('starter.controllers', [])// All this does is allow the message
     $timeout(function() {
 
         $scope.initApp();
+
+        $scope.showSongs = false;
+        $scope.showChats = false;
+        $scope.number = 100;
+        $scope.getNumber = function(num) {
+            return new Array(num);
+        }
+        $ionicModal.fromTemplateUrl('templates/chat.html', {
+          scope: $scope,
+          animation: 'slide-in-right'//'slide-in-right'
+        }).then(function(modal) {
+          $scope.chatmodal = modal;
+        });
+        $scope.openChatModal = function() {
+          $scope.chatmodal.show();
+        };
+        $scope.closeChatModal = function() {
+          $scope.chatmodal.hide();
+        };
+
     }, 2000);
 
 

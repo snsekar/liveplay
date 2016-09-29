@@ -15,3 +15,103 @@
     max-height: 50px;
     width: 100%;
     height: 100%; }
+    /* animation */
+    .slide-in-left {
+      -webkit-transform: translate3d(-100%, 0, 0);
+      transform: translate3d(-100%, 0, 0);
+
+      /*background-color: #a366ff;*/
+      background-color: rgba(163, 102, 255, 0.75);;
+
+
+    }
+
+    .slide-in-left.ng-enter, .slide-in-left > .ng-enter {
+      -webkit-transition: all cubic-bezier(0.1, 0.7, 0.1, 1) 400ms;
+      transition: all cubic-bezier(0.1, 0.7, 0.1, 1) 400ms; }
+
+    .slide-in-left.ng-enter-active, .slide-in-left > .ng-enter-active {
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0); }
+
+    .slide-in-left.ng-leave, .slide-in-left > .ng-leave {
+      -webkit-transition: all ease-in-out 250ms;
+      transition: all ease-in-out 250ms; }
+    /* animation end */
+    .mycard {
+      margin: 3px 10px ;
+    }
+    .myitem {
+      padding: 3px;
+      padding-left: 54px;
+
+    }
+
+/*copying*/
+
+
+/* Empty. Add your own CSS if you like */
+.slide-in-right {
+  -webkit-transform: translateX(100%);
+    transform: translateX(100%);
+    /*background-color: rgba(163, 102, 255, 0.75);*/
+    background-color: rgba(68, 68, 68, 0.8);
+    left: 20%;
+  }
+
+.slide-in-right.ng-enter, .slide-in-right > .ng-enter {
+  -webkit-transition: all cubic-bezier(0.1, 0.7, 0.1, 1) 400ms;
+  transition: all cubic-bezier(0.1, 0.7, 0.1, 1) 400ms; }
+
+.slide-in-right.ng-enter-active, .slide-in-right > .ng-enter-active {
+  -webkit-transform: translateX(0);
+    transform: translateX(0); }
+
+.slide-in-right.ng-leave, .slide-in-right > .ng-leave {
+  -webkit-transition: all ease-in-out 250ms;
+  transition: all ease-in-out 250ms; }
+.trans-bg{
+  background-color: transparent;
+}
+
+/*.slide-in-left {
+  -webkit-transform: translate3d(-100%, 0, 0);
+  transform: translate3d(-100%, 0, 0);
+  background-color: rgba(163, 102, 255, 0.75);
+}
+
+.slide-in-left.ng-enter, .slide-in-left > .ng-enter {
+  -webkit-transition: all cubic-bezier(0.1, 0.7, 0.1, 1) 400ms;
+  transition: all cubic-bezier(0.1, 0.7, 0.1, 1) 400ms; }
+
+.slide-in-left.ng-enter-active, .slide-in-left > .ng-enter-active {
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0); }
+
+.slide-in-left.ng-leave, .slide-in-left > .ng-leave {
+  -webkit-transition: all ease-in-out 250ms;
+  transition: all ease-in-out 250ms; }*/
+
+/* animation end */
+.gradbg{
+  background: #444444;
+}
+.mycard {
+  margin: 5px 10px ;
+
+  color: white;
+}
+.myitem {
+  padding: 5px;
+  padding-left: 54px;
+  background-color: rgb(82, 82, 122);
+
+}
+
+.mytitle{
+  color: white;
+}
+.transbg{
+  background-color: rgba(68, 68, 68, 0.5);
+
+}

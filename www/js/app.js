@@ -23,8 +23,9 @@ angular.module('starter', ['ionic', 'starter.controllers','ion-floating-menu','i
 	loadPeerJs();
   });
 })
-
-.config(function($stateProvider, $urlRouterProvider) {
+.config(function($stateProvider, $urlRouterProvider,$ionicConfigProvider) {
+  //$ionicConfigProvider.scrolling.jsScrolling(false);
+  console.log("js scrolling disabled");
   $stateProvider
 
     .state('app', {
